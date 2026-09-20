@@ -24,11 +24,11 @@
   "dependencies": {
     "@acl/contracts": "workspace:*",
     "@acl/rating": "workspace:*",
-    "pg": "8.13.1"
+    "pg": "8.23.0"
   },
   "devDependencies": {
     "@types/node": "20.19.0",
-    "@types/pg": "8.11.10",
+    "@types/pg": "8.23.1",
     "esbuild": "0.28.2",
     "tsx": "4.23.15",
     "typescript": "5.9.3",
