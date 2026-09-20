@@ -15,7 +15,7 @@
     "@acl/contracts": "workspace:*",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-router-dom": "6.30.6"
+    "react-router-dom": "7.18.4"
   },
   "devDependencies": {
     "@types/node": "20.19.0",
