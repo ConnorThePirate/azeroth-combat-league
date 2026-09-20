@@ -76,7 +76,7 @@ returns void
 language sql security definer set search_path = public as
 $$
   update jobs set
-    state = case when attempt_count >= max_attempts then 'dead' else 'pending' end,
+    state = case when attempt_count >= max_attempts then 'dead'::job_state else 'pending'::job_state end,
     available_at = case when attempt_count >= max_attempts then available_at
                         else now() + p_retry_after end,
     dead_reason = case when attempt_count >= max_attempts then p_reason else dead_reason end,
