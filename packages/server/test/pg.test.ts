@@ -189,4 +189,29 @@ describe.skipIf(!process.env.DATABASE_URL)("postgres wiring", () => {
     const ids = (viaApi.body as { events: { id: string }[] }).events.map((e) => e.id);
     expect(ids).toContain(ev.id);
   });
+
+  it("createCharacter: lands at claimed tier, name_taken on re-claim", async () => {
+    // fresh name per run — the CI database may persist between runs
+    const name = `Ci${randomUUID().replace(/[^a-f]/gi, "").slice(0, 8)}`;
+    const input = {
+      accountId: ACCT_A, name, classId: 2, factionId: 0, level: 60,
+      product: "wow-forever", environment: "beta", region: "EU",
+      realmId: "forever",
+    };
+    const row = await deps.store.createCharacter(input);
+    expect(row).not.toBe("name_taken");
+    if (row === "name_taken") return;
+    expect(row.accountId).toBe(ACCT_A);
+    // the column default governs — self-registration can never mint a
+    // higher tier (docs/26)
+    expect(row.verificationTier).toBe("claimed");
+    const read = await deps.store.getCharacter(row.id);
+    expect(read?.verificationTier).toBe("claimed");
+
+    // re-claim — different case, different account — is refused
+    expect(await deps.store.createCharacter(
+      { ...input, name: name.toUpperCase() })).toBe("name_taken");
+    expect(await deps.store.createCharacter(
+      { ...input, accountId: ACCT_B })).toBe("name_taken");
+  });
 });

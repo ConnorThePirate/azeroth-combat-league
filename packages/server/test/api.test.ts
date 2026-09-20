@@ -18,18 +18,25 @@ function req(method: string, path: string, body?: unknown, headers: Record<strin
 }
 const bearer = (t: string) => ({ authorization: `Bearer ${t}` });
 
+const SCOPE = {
+  product: "wow-forever", environment: "beta", region: "eu", realmId: "forever",
+};
+
 function makeDeps(): ApiDeps & { store: InMemoryStore; reads: InMemoryReadModel } {
-  const store = new InMemoryStore();
-  const reads = new InMemoryReadModel(store);
+  // shared name map — same wiring as serve.ts so createCharacter's
+  // community-wide name check sees the seeded characters
+  const names = new Map<string, string>();
+  const store = new InMemoryStore(names);
+  const reads = new InMemoryReadModel(store, names);
   for (const [id, accountId, name, classId, tier] of [
     [U(5), "acct-a", "Mangler", 1, "witnessed"],
     [U(6), "acct-b", "Sneakthief", 4, "witnessed"],
     [U(7), "acct-c", "Frostbolt", 7, "witnessed"],
   ] as const) {
     store.characters.set(id, { id, accountId, classId, level: 60, verificationTier: tier });
-    reads.names.set(id, name);
+    names.set(id, name);
   }
-  const events = new InMemoryEventBoard(store, reads.names);
+  const events = new InMemoryEventBoard(store, names);
   events.seed({
     id: U(20), name: "Friday Fight Night", kind: "fight_night",
     whenMs: Date.now() + 86400_000, venue: "Gadgetzan", status: "upcoming",
@@ -47,6 +54,7 @@ function makeDeps(): ApiDeps & { store: InMemoryStore; reads: InMemoryReadModel 
     store, reads, auth: new InMemoryAuthStore(), events, world,
     snapshots: new InMemorySnapshotSource(store, reads),
     configVersion: "beta-v2", verifyUrlBase: "http://test/pair", seasonId: SEASON,
+    identityScope: { ...SCOPE },
   };
 }
 
@@ -467,7 +475,123 @@ describe("api: reads", () => {
     const res2 = await handleRequest(deps, req("GET", "/v1/addon-update", {}, bearer(token)));
     expect((res2.body as { snapshotSequence: number }).snapshotSequence).toBe(2);
   });
+});
 
+describe("api: character registration", () => {
+  const session = async (deps: ApiDeps, accountId: string) =>
+    (await handleRequest(deps, req("POST", "/v1/session", { accountId })))
+      .body as { token: string };
+  const register = (deps: ApiDeps, token: string, body: unknown) =>
+    handleRequest(deps, req("POST", "/v1/characters", body, bearer(token)));
+
+  it("requires a session — unauthenticated gets 401", async () => {
+    const deps = makeDeps();
+    const res = await register(deps, "bogus", { name: "Testadin" });
+    expect(res.status).toBe(401);
+    const noTok = await handleRequest(deps, req("POST", "/v1/characters",
+      { name: "Testadin", classId: 2, factionId: 0, level: 60 }));
+    expect(noTok.status).toBe(401);
+  });
+
+  it("registers at claimed tier — 201 with the echoed character", async () => {
+    const deps = makeDeps();
+    const s = await session(deps, "acct-a");
+    const res = await register(deps, s.token,
+      { name: "Testadin", classId: 2, factionId: 0, level: 60 });
+    expect(res.status).toBe(201);
+    const c = (res.body as { character: {
+      id: string; name: string; classId: number; factionId: number;
+      level: number; verificationTier: string;
+    } }).character;
+    expect(c).toMatchObject({
+      name: "Testadin", classId: 2, factionId: 0, level: 60,
+      verificationTier: "claimed",
+    });
+    // the row is real: /v1/me lists it for the account
+    const me = await handleRequest(deps, req("GET", "/v1/me", {}, bearer(s.token)));
+    const chars = (me.body as { characters: { id: string; name: string }[] }).characters;
+    expect(chars.map((x) => x.id)).toContain(c.id);
+  });
+
+  it("rejects a duplicate name — same account and different account", async () => {
+    const deps = makeDeps();
+    const s1 = await session(deps, "acct-a");
+    const s2 = await session(deps, "acct-b");
+    const body = { name: "Duellist", classId: 4, factionId: 1, level: 60 };
+    expect((await register(deps, s1.token, body)).status).toBe(201);
+    // same account re-claiming
+    expect((await register(deps, s1.token, body)).status).toBe(409);
+    // a different account — one name per community
+    expect((await register(deps, s2.token, body)).status).toBe(409);
+  });
+
+  it("name checks are case-insensitive and cover seeded characters", async () => {
+    const deps = makeDeps();
+    const s = await session(deps, "acct-c");
+    expect((await register(deps, s.token,
+      { name: "Testadin", classId: 2, factionId: 0, level: 60 })).status).toBe(201);
+    expect((await register(deps, s.token,
+      { name: "testadin", classId: 2, factionId: 0, level: 60 })).status).toBe(409);
+    // seeded names live in the same map — "mangler" collides with Mangler
+    expect((await register(deps, s.token,
+      { name: "mangler", classId: 1, factionId: 0, level: 60 })).status).toBe(409);
+  });
+
+  it("validates fields — bad name/class/faction/level are 422", async () => {
+    const deps = makeDeps();
+    const s = await session(deps, "acct-a");
+    const ok = { name: "Testadin", classId: 2, factionId: 0, level: 60 };
+    const bad: [unknown, string][] = [
+      [{ ...ok, name: "A" }, "invalid_name"],        // too short
+      [{ ...ok, name: "Waytoolongname" }, "invalid_name"], // > 12
+      [{ ...ok, name: "Bad Name!" }, "invalid_name"],      // non-alpha
+      [{ ...ok, name: "" }, "invalid_name"],
+      [{ ...ok, classId: 0 }, "invalid_classId"],
+      [{ ...ok, classId: 10 }, "invalid_classId"],
+      [{ ...ok, classId: 2.5 }, "invalid_classId"],
+      [{ ...ok, factionId: 2 }, "invalid_factionId"],
+      [{ ...ok, level: 0 }, "invalid_level"],
+      [{ ...ok, level: 61 }, "invalid_level"],
+      [{ ...ok, level: "max" }, "invalid_level"],
+      [{}, "invalid_name"],
+    ];
+    for (const [body, error] of bad) {
+      const res = await register(deps, s.token, body);
+      expect(res.status).toBe(422);
+      expect((res.body as { error: string }).error).toBe(error);
+    }
+  });
+
+  it("a registered character can self-report — no identity_unverified", async () => {
+    const deps = makeDeps();
+    // fresh account, no characters: register one, then upload its own report
+    const s = await session(deps, "acct-z");
+    const reg = await register(deps, s.token,
+      { name: "Newblade", classId: 4, factionId: 1, level: 60 });
+    expect(reg.status).toBe(201);
+    const charId = (reg.body as { character: { id: string } }).character.id;
+
+    const tok = await pairDevice(deps, U(60), "acct-z");
+    const c: MatchContract = {
+      ...contract(), sessionId: U(77),
+      participants: [
+        { characterId: charId, side: 1 }, { characterId: U(6), side: 2 },
+      ],
+    };
+    const res = await handleRequest(deps, req("POST", "/v1/reports/batch", {
+      reports: [report(c, charId, charId, "n1", U(60))],
+      contracts: [c as never],
+    }, bearer(tok)));
+    expect(res.status).toBe(200);
+    const receipt = (res.body as { receipts: { status: string }[] }).receipts[0]!;
+    // before registration this upload died at identity_unverified (ingest
+    // rejects reports whose origin char isn't on the authed account)
+    expect(receipt.status).not.toBe("rejected");
+    expect(receipt.status).toBe("awaiting_peer");
+  });
+});
+
+describe("api: misc", () => {
   it("unknown routes 404", async () => {
     const deps = makeDeps();
     const res = await handleRequest(deps, req("GET", "/v1/nope"));

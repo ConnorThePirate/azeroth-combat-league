@@ -70,6 +70,9 @@ in `.env.example` — copy values from there, never commit real ones.
    automatically; it never seeds and runs one rating generation at boot.
    Without the `SUPABASE_*` pair the API logs a startup warning and every
    session-gated route returns 401 — public reads still work.
+   `ACL_PRODUCT`/`ACL_ENVIRONMENT`/`ACL_REGION`/`ACL_REALM` set the identity
+   scope for `POST /v1/characters` self-registration — the defaults
+   (`wow-forever`/`beta`/`eu`/`forever`) match this deployment.
 3. Verify: `curl https://acl-api.fly.dev/v1/status` → `200`, `ratingGeneration`
    non-null once reports exist.
 4. CI deploys: `fly tokens create deploy` → add the token as repo secret

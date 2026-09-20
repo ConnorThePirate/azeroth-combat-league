@@ -237,6 +237,15 @@ const adminAccounts = (env: NodeJS.ProcessEnv = process.env): Set<string> =>
   new Set((env.ACL_ADMIN_ACCOUNTS ?? "")
     .split(",").map((s) => s.trim()).filter(Boolean));
 
+/** Identity scope self-registered characters land in (docs/26) — one
+ *  deployment serves exactly one product/environment/region/realm. */
+const identityScope = (env: NodeJS.ProcessEnv = process.env) => ({
+  product: env.ACL_PRODUCT ?? "wow-forever",
+  environment: env.ACL_ENVIRONMENT ?? "beta",
+  region: env.ACL_REGION ?? "eu",
+  realmId: env.ACL_REALM ?? "forever",
+});
+
 const verifyUrlBase = () =>
   process.env.ACL_VERIFY_URL ?? "http://localhost:5173/account/pair";
 
@@ -253,6 +262,7 @@ export function createPgDeps(pool: pg.Pool): ApiDeps {
     configVersion: "beta-v2",
     verifyUrlBase: verifyUrlBase(),
     seasonId: SEASON,
+    identityScope: identityScope(),
     generations: new GenerationRunner(store),
     adminAccounts: adminAccounts(),
     limiter: new RateLimiter(),
@@ -281,9 +291,12 @@ export async function createDeps(): Promise<ApiDeps> {
     }
     return deps;
   }
-  const store = new InMemoryStore();
-  const reads = new InMemoryReadModel(store);
-  const events = new InMemoryEventBoard(store, reads.names);
+  // one shared name map: the store checks it on registration, the read
+  // model + event board resolve display names from it, seedDev fills it
+  const names = new Map<string, string>();
+  const store = new InMemoryStore(names);
+  const reads = new InMemoryReadModel(store, names);
+  const events = new InMemoryEventBoard(store, names);
   const world = new InMemoryWorldBoard();
   const generations = new GenerationRunner(store);
   if (process.env.ACL_SEED !== "0") {
@@ -340,6 +353,7 @@ export async function createDeps(): Promise<ApiDeps> {
     configVersion: "beta-v2",
     verifyUrlBase: verifyUrlBase(),
     seasonId: SEASON,
+    identityScope: identityScope(),
     generations,
     adminAccounts: adminAccounts(),
     limiter: new RateLimiter(),

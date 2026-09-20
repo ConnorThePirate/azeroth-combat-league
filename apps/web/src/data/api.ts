@@ -125,6 +125,11 @@ export const api = {
     post<{ token: string }>("/v1/session", { accountId }),
   me: (token: string) =>
     get<MeResponse>("/v1/me", token),
+  createCharacter: (input: CharacterInput, token: string) =>
+    post<{ character: {
+      id: string; name: string; classId: number; factionId: number;
+      level: number; verificationTier: string;
+    } }>("/v1/characters", input, token),
   world: () =>
     get<{
       war: WorldEntryItem[]; pit: WorldEntryItem[]; scoringLive: boolean;
@@ -145,6 +150,11 @@ export interface MeResponse {
   characters: {
     id: string; name: string; classId: number; verificationTier: string;
   }[];
+}
+
+/** POST /v1/characters body — self-registration lands at claimed tier. */
+export interface CharacterInput {
+  name: string; classId: number; factionId: number; level: number;
 }
 
 export interface WorldEntryItem {

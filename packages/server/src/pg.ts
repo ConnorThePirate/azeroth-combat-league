@@ -148,6 +148,35 @@ export class PgStore implements Store {
     };
   }
 
+  async createCharacter(c: {
+    accountId: string; name: string; classId: number; factionId: number;
+    level: number; product: string; environment: string; region: string; realmId: string;
+  }): Promise<CharacterRow | "name_taken"> {
+    // one name per community within the identity scope — case-insensitive,
+    // regardless of which account holds it (docs/26)
+    const { rows: dupe } = await this.pool.query(
+      `select 1 from characters
+       where product = $1 and environment = $2 and region = $3
+         and realm_id = $4 and lower(name) = lower($5)`,
+      [c.product, c.environment, c.region, c.realmId, c.name]);
+    if (dupe.length > 0) return "name_taken";
+    // verification_tier stays at the column default ('claimed') — this path
+    // must never mint a higher tier
+    const { rows } = await this.pool.query(
+      `insert into characters
+         (account_id, product, environment, region, realm_id,
+          name, class_id, faction_id, level)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+       returning id, account_id, class_id, level, verification_tier`,
+      [c.accountId, c.product, c.environment, c.region, c.realmId,
+       c.name, c.classId, c.factionId, c.level]);
+    const r = rows[0]!;
+    return {
+      id: r.id, accountId: r.account_id, classId: r.class_id,
+      level: r.level, verificationTier: r.verification_tier,
+    };
+  }
+
   async assignReceipt(matchId: string, nowMs: number): Promise<number> {
     const { rows } = await this.pool.query(
       `update matches set

@@ -5,6 +5,7 @@
  * generation commit.
  */
 
+import { randomUUID } from "node:crypto";
 import type {
   CharacterRow, ContractRow, GameRow, MatchRow, ParticipantRow, ReportRow, Store,
 } from "./store.js";
@@ -24,10 +25,36 @@ export class InMemoryStore implements Store {
   heads = new Map<string, { activeGenerationId: string | null; inputRevision: number }>();
   private receiptSeq = 0;
 
+  /**
+   * `names` is the characterId -> display-name map shared with the read
+   * model (serve.ts creates one map for both) — createCharacter writes into
+   * it so the community-wide name check and /v1/me stay consistent.
+   */
+  constructor(private readonly names: Map<string, string> = new Map()) {}
+
   async getContract(id: string) { return this.contracts.get(id) ?? null; }
   async getMatch(id: string) { return this.matches.get(id) ?? null; }
   async participantsOf(matchId: string) { return this.participants.get(matchId) ?? []; }
   async getCharacter(id: string) { return this.characters.get(id) ?? null; }
+
+  async createCharacter(c: {
+    accountId: string; name: string; classId: number; factionId: number;
+    level: number; product: string; environment: string; region: string; realmId: string;
+  }): Promise<CharacterRow | "name_taken"> {
+    // the in-memory deployment is a single scope, so the check is simply
+    // "name already claimed" — case-insensitive, regardless of account
+    const lower = c.name.toLowerCase();
+    for (const n of this.names.values()) {
+      if (n.toLowerCase() === lower) return "name_taken";
+    }
+    const row: CharacterRow = {
+      id: randomUUID(), accountId: c.accountId, classId: c.classId,
+      level: c.level, verificationTier: "claimed",
+    };
+    this.characters.set(row.id, row);
+    this.names.set(row.id, c.name);
+    return row;
+  }
   async seasonInputRevision(seasonId: string) { return this.revisions.get(seasonId) ?? 0; }
 
   async insertContractWithMatch(contract: ContractRow, participants: ParticipantRow[]): Promise<void> {

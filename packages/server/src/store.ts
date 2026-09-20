@@ -82,6 +82,17 @@ export interface Store {
   reportsForMatch(matchId: string): Promise<ReportRow[]>;
   participantsOf(matchId: string): Promise<ParticipantRow[]>;
   getCharacter(id: string): Promise<CharacterRow | null>;
+  /**
+   * Self-registration (docs/26): inserts a character owned by `accountId`
+   * inside the deployment's identity scope. Always lands at `claimed` tier —
+   * only witness check-ins or provider verification raise it. Returns
+   * "name_taken" when the lowercased name is already claimed in that scope
+   * (one name per community, regardless of account).
+   */
+  createCharacter(c: {
+    accountId: string; name: string; classId: number; factionId: number;
+    level: number; product: string; environment: string; region: string; realmId: string;
+  }): Promise<CharacterRow | "name_taken">;
   /** Assign immutable first_seen_at + receipt_seq on first valid receipt. */
   assignReceipt(matchId: string, nowMs: number): Promise<number>;
   setMatchState(matchId: string, patch: Partial<Pick<MatchRow, "lifecycle" | "evidence" | "rating" | "finishedAt">>): Promise<void>;

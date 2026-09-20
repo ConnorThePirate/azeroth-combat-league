@@ -16,18 +16,23 @@ function req(method: string, path: string, body?: unknown,
 const bearer = (t: string) => ({ authorization: `Bearer ${t}` });
 
 function makeDeps(): ApiDeps & { auth: InMemoryAuthStore } {
-  const store = new InMemoryStore();
-  const reads = new InMemoryReadModel(store);
+  const names = new Map<string, string>();
+  const store = new InMemoryStore(names);
+  const reads = new InMemoryReadModel(store, names);
   store.characters.set(U(5), {
     id: U(5), accountId: "acct-a", classId: 1, level: 60,
     verificationTier: "witnessed",
   });
   return {
     store, reads, auth: new InMemoryAuthStore(),
-    events: new InMemoryEventBoard(store, reads.names),
+    events: new InMemoryEventBoard(store, names),
     world: new InMemoryWorldBoard(),
     snapshots: new InMemorySnapshotSource(store, reads),
     configVersion: "beta-v2", verifyUrlBase: "http://test/pair", seasonId: U(90),
+    identityScope: {
+      product: "wow-forever", environment: "beta", region: "eu",
+      realmId: "forever",
+    },
   };
 }
 

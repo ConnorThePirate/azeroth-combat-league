@@ -351,6 +351,11 @@ export interface ApiDeps {
   configVersion: string;
   verifyUrlBase: string;   // e.g. https://site/pair
   seasonId: string;
+  /** Identity scope new characters register into (docs/26) — deployment
+   *  constants from ACL_PRODUCT/ACL_ENVIRONMENT/ACL_REGION/ACL_REALM. */
+  identityScope: {
+    product: string; environment: string; region: string; realmId: string;
+  };
   /** Debounced rating-generation runner; absent = generation disabled. */
   generations?: GenerationRunner;
   /** Accounts allowed on /v1/admin/* — unset means nobody is admin. */
@@ -577,6 +582,48 @@ export async function handleRequest(deps: ApiDeps, req: ApiRequest): Promise<Api
     return json(200, {
       accountId: s.accountId,
       characters: await deps.reads.myCharacters(s.accountId),
+    });
+  }
+
+  // --- character self-registration (docs/26) ------------------------------
+  // Self-reported characters land at `claimed` tier: they can duel and
+  // record matches immediately, but count on the ladder only after an event
+  // check-in (witnessed) or provider verification. This route must never
+  // mint a higher tier.
+  if (method === "POST" && path === "/v1/characters") {
+    const s = await sessionAuth(deps, req);
+    if ("status" in s) return s;
+    const rl = limited(deps, `acct:${s.accountId}:chars`, 10, 60_000);
+    if (rl) return rl;
+    const b = req.body as {
+      name?: unknown; classId?: unknown; factionId?: unknown; level?: unknown;
+    } | undefined;
+    const name = typeof b?.name === "string" ? b.name.trim() : "";
+    if (!/^[A-Za-z]{2,12}$/.test(name))
+      return json(422, { error: "invalid_name" });
+    const classId = Number(b?.classId);
+    if (!Number.isInteger(classId) || classId < 1 || classId > 9)
+      return json(422, { error: "invalid_classId" });
+    const factionId = Number(b?.factionId);
+    if (factionId !== 0 && factionId !== 1)
+      return json(422, { error: "invalid_factionId" });
+    const level = Number(b?.level);
+    if (!Number.isInteger(level) || level < 1 || level > 60)
+      return json(422, { error: "invalid_level" });
+    const created = await deps.store.createCharacter({
+      accountId: s.accountId, name, classId, factionId, level,
+      product: deps.identityScope.product,
+      environment: deps.identityScope.environment,
+      region: deps.identityScope.region,
+      realmId: deps.identityScope.realmId,
+    });
+    if (created === "name_taken")
+      return json(409, { error: "name_taken" });
+    return json(201, {
+      character: {
+        id: created.id, name, classId, factionId, level,
+        verificationTier: created.verificationTier, // always "claimed"
+      },
     });
   }
 

@@ -51,13 +51,16 @@ export function computeRivals(
 }
 
 export class InMemoryReadModel implements ReadModel {
-  /** characterId -> display name (dev seed only; prod resolves via accounts) */
-  names = new Map<string, string>();
+  /** characterId -> display name (dev seed only; prod resolves via accounts).
+   *  Shared with the store so self-registered characters resolve by name. */
+  readonly names: Map<string, string>;
   /** versionId -> published ruleset (dev seed + tests) */
   publishedRulesets = new Map<string, PublishedRuleset>();
   configVersion = "beta-v2";
 
-  constructor(private readonly s: InMemoryStore) {}
+  constructor(private readonly s: InMemoryStore, names?: Map<string, string>) {
+    this.names = names ?? new Map();
+  }
 
   seedRuleset(rs: PublishedRuleset): void {
     this.publishedRulesets.set(rs.versionId, rs);
