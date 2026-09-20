@@ -19,9 +19,6 @@ additional_redirect_urls = ["http://localhost:5173"]
 jwt_expiry = 3600
 enable_signup = true
 
-[functions]
-enabled = true
-
 [storage]
 enabled = true
 file_size_limit = "5MiB"
