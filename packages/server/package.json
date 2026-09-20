@@ -29,9 +29,9 @@
   "devDependencies": {
     "@types/node": "20.19.0",
     "@types/pg": "8.11.10",
-    "esbuild": "^0.28.2",
-    "tsx": "4.19.2",
+    "esbuild": "0.28.2",
+    "tsx": "4.23.15",
     "typescript": "5.9.3",
-    "vitest": "3.2.4"
+    "vitest": "3.2.7"
   }
 }
