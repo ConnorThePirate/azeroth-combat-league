@@ -169,7 +169,7 @@ begin
     participant_character_id, before_milli, delta_milli, after_milli,
     pair_prior_count, pair_weight, ordinal)
   select p_generation_id,
-         (e->>'match_id')::uuid, e->'ladder_key', (e->>'participant')::uuid,
+         (e->>'match_id')::uuid, (e->>'ladder_key')::jsonb, (e->>'participant')::uuid,
          (e->>'before_milli')::bigint, (e->>'delta_milli')::bigint,
          (e->>'after_milli')::bigint, (e->>'pair_prior_count')::int,
          (e->>'pair_weight')::numeric, (e->>'ordinal')::bigint
@@ -178,7 +178,7 @@ begin
 
   insert into ladder_members (generation_id, ladder_key, character_id,
     rating_milli, positive_series, distinct_opponents, last_activity)
-  select p_generation_id, e->'ladder_key', (e->>'character_id')::uuid,
+  select p_generation_id, (e->>'ladder_key')::jsonb, (e->>'character_id')::uuid,
          (e->>'rating_milli')::bigint, (e->>'positive_series')::int,
          (e->>'distinct_opponents')::int,
          (e->>'last_activity')::timestamptz
