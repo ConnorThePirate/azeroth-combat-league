@@ -1,0 +1,53 @@
+{
+  "wfp2_stored": "WFP2:AbkDRvx7ImFkZG9uVmVyc2lvbiI6IjAuMS4wIiwiYnVpbGQiOiIxLjYwLjEuNjk5MTMiLCJleHBvcnRlZEF0TXMiOjE3ODk4MzM3MDAwMDAsImluc3RhbGxhdGlvbklkIjoiMDAwMDAwMDctMDAwMC00MDAwLTgwMDAtMDAwMDAwMDAwMDAwIiwicmVwb3J0cyI6W3siYWNjZXB0ZWRBdE1zIjoxNzg5ODMzNjEwMDAwLCJhZGRvblZlcnNpb24iOiIwLjEuMCIsImF0dGVzdGF0aW9ucyI6W10sImJ1aWxkIjoiMS42MC4xLjY5OTEzIiwiY29udHJhY3RIYXNoIjoiYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYSIsImNvdmVyYWdlIjpbXSwiZGV0ZWN0b3JDYXRhbG9nVmVyc2lvbiI6ImNhdC0wIiwiZmluaXNoZWRBdE1zIjoxNzg5ODMzNjgwMDAwLCJnYW1lcyI6W3siY2xhaW1lZFdpbm5lckNoYXJhY3RlcklkIjoiMDAwMDAwMDUtMDAwMC00MDAwLTgwMDAtMDAwMDAwMDAwMDAwIiwiZmFjdHMiOltdLCJmaW5pc2hSZWFzb24iOiJkZWF0aCIsImluZGV4IjowLCJpbnRlcmZlcmVuY2VDYW5kaWRhdGVzIjpbXSwib2JzZXJ2ZWRFbmRNcyI6MTc4OTgzMzY4MDAwMCwib2JzZXJ2ZWRTdGFydE1zIjoxNzg5ODMzNjIwMDAwLCJ2aW9sYXRpb25DYW5kaWRhdGVzIjpbXX1dLCJpbnN0YWxsYXRpb25JZCI6IjAwMDAwMDA3LTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMCIsIm5vbmNlIjoibm9uY2UtMSIsIm9yaWdpbkNoYXJhY3RlcklkIjoiMDAwMDAwMDUtMDAwMC00MDAwLTgwMDAtMDAwMDAwMDAwMDAwIiwicGVlckRpZ2VzdHMiOltdLCJwcm9wb3NlZEF0TXMiOjE3ODk4MzM2MDAwMDAsInNjaGVtYSI6IndmLm1hdGNoLXJlcG9ydC52MiIsInNlc3Npb25JZCI6IjAwMDAwMDAxLTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMCIsInN0YXJ0ZWRBdE1zIjoxNzg5ODMzNjIwMDAwfV0sInNjaGVtYSI6IndmLnN5bmMtZW52ZWxvcGUudjIifQ:19116ab5",
+  "wfp2_compressed": "WFP2:pVNNT8MwDP0vOa9Vu8G-bmggwYELSHBAHLzEbSO1SZWEMoT237GbIrbBNGnkkKpO_N7zs_MpQClrntB5bY1YiizN00yMxPpN14r-83TKoelikU8ojJvWuoDqKtx7scxn88V8MpllvEZCGx-griEQ1B0n9_EsmyW8Jxe8zXkb4v0iUIcMSngvJEdKbA8JpnkkOKIVQkBiZloGeT2qXloTHMhwC76iU_jn6hE7dFBipFUYUAbrVkA-2PJHqYSQsNJCG-2rw-rYE6quhAajCbIG3aB61sagW1XAmtHtWnp5wtKCMgYvIucDgu-lKIRQ0Q1tFG7Esm8bgRfo0EhcgVFaAfkZk-3ao-tQ3Rj1h-Lv08cAbq-icTzvtI3TsA-7JeBzZ8VYUknX-2-SU8Q6XWpzlkstorvWJQ3PUG7rbGv9YX-G8faywgYI_b1IGwiySuLgpt2YsDx6bvYufX6Cnhz49ZaidezQLp3_MDJB02FtW2S-7Rc:6e11b6e9",
+  "wfu1_stored": "WFU1:AboARf97ImFjY291bnRJZCI6IjAwMDAwMDA4LTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMCIsImNoYXJhY3RlcnMiOltdLCJjb25maWdWZXJzaW9uIjoiYmV0YS12MiIsImlzc3VlZEF0TXMiOjE3ODk4MzM4MDAwMDAsInJlY2VpcHRzIjpbXSwic2NoZW1hIjoid2YuYWRkb24tdXBkYXRlLnYxIiwic25hcHNob3RTZXF1ZW5jZSI6M30:9bb83395",
+  "envelopePayload": {
+    "schema": "wf.sync-envelope.v2",
+    "installationId": "00000007-0000-4000-8000-000000000000",
+    "build": "1.60.1.69913",
+    "addonVersion": "0.1.0",
+    "exportedAtMs": 1789833700000,
+    "reports": [
+      {
+        "schema": "wf.match-report.v2",
+        "sessionId": "00000001-0000-4000-8000-000000000000",
+        "contractHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "originCharacterId": "00000005-0000-4000-8000-000000000000",
+        "installationId": "00000007-0000-4000-8000-000000000000",
+        "nonce": "nonce-1",
+        "build": "1.60.1.69913",
+        "addonVersion": "0.1.0",
+        "detectorCatalogVersion": "cat-0",
+        "proposedAtMs": 1789833600000,
+        "acceptedAtMs": 1789833610000,
+        "startedAtMs": 1789833620000,
+        "finishedAtMs": 1789833680000,
+        "games": [
+          {
+            "index": 0,
+            "observedStartMs": 1789833620000,
+            "observedEndMs": 1789833680000,
+            "claimedWinnerCharacterId": "00000005-0000-4000-8000-000000000000",
+            "finishReason": "death",
+            "facts": [],
+            "interferenceCandidates": [],
+            "violationCandidates": []
+          }
+        ],
+        "coverage": [],
+        "attestations": [],
+        "peerDigests": []
+      }
+    ]
+  },
+  "updatePayload": {
+    "schema": "wf.addon-update.v1",
+    "accountId": "00000008-0000-4000-8000-000000000000",
+    "snapshotSequence": 3,
+    "issuedAtMs": 1789833800000,
+    "characters": [],
+    "receipts": [],
+    "configVersion": "beta-v2"
+  }
+}

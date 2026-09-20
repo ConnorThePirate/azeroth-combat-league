@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azeroth-combat-league/schemas/wf.match-contract.v2.schema.json",
+  "title": "Match Contract v2",
+  "description": "Mutually accepted immutable match terms. docs/06_PROTOCOL_AND_SYNC.md",
+  "type": "object",
+  "required": [
+    "schema", "sessionId", "seasonId", "poolId", "ladder", "ratedIntent",
+    "bestOf", "rulesetVersionId", "participants", "levelMin", "levelMax",
+    "venue", "tournamentMatchId", "createdAtMs", "acceptByMs", "configVersion"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "wf.match-contract.v2" },
+    "sessionId": { "type": "string", "format": "uuid" },
+    "seasonId": { "type": "string", "format": "uuid" },
+    "poolId": { "type": "string", "format": "uuid" },
+    "ladder": { "enum": ["open", "mirror", null] },
+    "ratedIntent": { "type": "boolean" },
+    "bestOf": { "enum": [1, 3, 5] },
+    "rulesetVersionId": { "type": "string", "format": "uuid" },
+    "participants": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["characterId", "side"],
+        "additionalProperties": false,
+        "properties": {
+          "characterId": { "type": "string", "format": "uuid" },
+          "side": { "enum": [1, 2] }
+        }
+      }
+    },
+    "levelMin": { "type": "integer", "minimum": 1, "maximum": 80 },
+    "levelMax": { "type": "integer", "minimum": 1, "maximum": 80 },
+    "venue": {
+      "type": "object",
+      "required": ["kind", "mapId", "areaId"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["anywhere", "map", "area"] },
+        "mapId": { "type": ["integer", "null"] },
+        "areaId": { "type": ["integer", "null"] }
+      }
+    },
+    "tournamentMatchId": { "type": ["string", "null"], "format": "uuid" },
+    "createdAtMs": { "type": "integer", "minimum": 0 },
+    "acceptByMs": { "type": "integer", "minimum": 0 },
+    "configVersion": { "type": "string", "maxLength": 64 }
+  }
+}

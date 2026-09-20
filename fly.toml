@@ -1,0 +1,29 @@
+# fly.toml — Azeroth Combat League API (packages/server).
+# Secrets are set with `fly secrets set`, never committed here:
+#   DATABASE_URL        Supabase pooler connection string (port 6543)
+#   ACL_WEB_ORIGIN      e.g. https://<your-pages-domain>
+#   ACL_ADMIN_ACCOUNTS  comma-separated account ids allowed to regenerate
+app = "acl-api"
+primary_region = "iad"
+
+[build]
+  dockerfile = "packages/server/Dockerfile"
+
+[env]
+  ACL_PORT = "8080"
+  ACL_SEED = "0"
+  ACL_TRUST_PROXY = "1"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/v1/status"

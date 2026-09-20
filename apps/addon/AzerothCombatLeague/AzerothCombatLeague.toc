@@ -1,0 +1,62 @@
+## Interface: 10601
+## Title: Azeroth Combat League
+## Notes: Community PvP duels — contracts, recording, and sync.|n|cff888888Beta lab build — capabilities probe live behavior.|r
+## Author: ACL volunteers
+## Version: 0.1.0
+## IconTexture: Interface\Icons\Ability_Duelist
+## SavedVariables: AzerothCombatLeagueDB
+## X-WF-Build: 69913
+## X-Schema-Major: 2
+
+Locale\enUS.lua
+
+Data\Inbound.lua
+
+Util\Bit.lua
+Util\Crc32.lua
+Util\Base64Url.lua
+Util\Sha256.lua
+Util\Deflate.lua
+Util\CanonicalJson.lua
+Util\Uuid.lua
+
+Core\Events.lua
+Core\Diagnostics.lua
+Core\State.lua
+Core\Capabilities.lua
+Core\Probes.lua
+
+Domain\Identity.lua
+Domain\Rules.lua
+Domain\Series.lua
+Domain\Contract.lua
+
+Comms\Codec.lua
+Comms\Frames.lua
+Comms\Transport.lua
+Comms\Reliability.lua
+Comms\Dispatch.lua
+
+Adapters\Duel.lua
+Adapters\CombatLog.lua
+Adapters\Aura.lua
+Adapters\Inspect.lua
+Adapters\Map.lua
+Adapters\PvPMatch.lua
+
+Sync\Outbox.lua
+Sync\Export.lua
+Sync\Import.lua
+
+UI\Shell.lua
+UI\Challenge.lua
+UI\Result.lua
+UI\RulesEditor.lua
+UI\History.lua
+UI\Hub.lua
+UI\Event.lua
+UI\Settings.lua
+UI\TestLab.lua
+UI\SyncBadge.lua
+
+Bootstrap.lua

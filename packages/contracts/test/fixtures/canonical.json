@@ -1,0 +1,44 @@
+[
+  {
+    "name": "empty-object",
+    "canonical": "{}",
+    "canonicalHex": "7b7d",
+    "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  {
+    "name": "flat",
+    "canonical": "{\"Z\":true,\"a\":\"x\",\"b\":1,\"n\":null}",
+    "canonicalHex": "7b225a223a747275652c2261223a2278222c2262223a312c226e223a6e756c6c7d",
+    "sha256": "f636b812b68a9da1f3f3a1d9e75d0dc345b4a1276f69f17b1ec605641843145b"
+  },
+  {
+    "name": "nested",
+    "canonical": "{\"arr\":[1,-5,\"two\",false,null],\"obj\":{\"y\":{\"z\":0}}}",
+    "canonicalHex": "7b22617272223a5b312c2d352c2274776f222c66616c73652c6e756c6c5d2c226f626a223a7b2279223a7b227a223a307d7d7d",
+    "sha256": "393bb8fdc7580037fdb6ad30128a02f52e0b99199e591b24f07db43b47483c5a"
+  },
+  {
+    "name": "escapes",
+    "canonical": "{\"s\":\"quote\\\" back\\\\slash newline\\u000a tab\\u0009 ctrl\\u0001\\u001f del\\u001b\"}",
+    "canonicalHex": "7b2273223a2271756f74655c22206261636b5c5c736c617368206e65776c696e655c7530303061207461625c7530303039206374726c5c75303030315c75303031662064656c5c7530303162227d",
+    "sha256": "41cbd74d0aa9d82955a7496394cf1589ab9b002b46b4c560fb65690bb0b90ade"
+  },
+  {
+    "name": "unicode-preserved",
+    "canonical": "{\"s\":\"Äëñå 🌍 é\"}",
+    "canonicalHex": "7b2273223a22c384c3abc3b1c3a520f09f8c8d20c3a9227d",
+    "sha256": "ff5ffd5c759308d47f8ea33b118d5768c460a5c9d1cb98b568d29d8a4b6a3a9c"
+  },
+  {
+    "name": "big-int",
+    "canonical": "{\"neg\":-42,\"t\":1789833600000}",
+    "canonicalHex": "7b226e6567223a2d34322c2274223a313738393833333630303030307d",
+    "sha256": "be82789cabdb13cd9979e696dd6f8d27a1a6e1b849e402fcbc76030e664bc11d"
+  },
+  {
+    "name": "deep",
+    "canonical": "{\"a\":[{\"b\":[{\"c\":[[]]}]}]}",
+    "canonicalHex": "7b2261223a5b7b2262223a5b7b2263223a5b5b5d5d7d5d7d5d7d",
+    "sha256": "26ae22eec9d3fffc21c2287c9509fe8f9318edc4915277db0ecb11ceb84b3abd"
+  }
+]

@@ -1,0 +1,22 @@
+# Glossary
+
+- Battle.net-linked: authenticated control of a provider identity, not unique person or Forever character proof.
+- Claimed/witnessed/provider-verified: distinct character identity strengths.
+- Contract: mutually accepted immutable match terms.
+- Corroborated: community evidence threshold met, not Blizzard server attestation.
+- Coverage: what a detector could actually observe over a game interval.
+- Candidate violation: observation requiring validation, not automatic guilt.
+- Community Elo: versioned 1500-start, K32 symmetric rating system.
+- Milli-rating: rating stored as integer thousandths.
+- Pool: connected eligible competition population; isolated factions/realms not automatically calibrated.
+- Open: any-class Standard ladder; class views filter it.
+- Mirror: independent same-class ladder.
+- Series: best-of contract, one rating event.
+- Pair weight: known linked-account repeat multiplier across alts/ladders.
+- Projection generation: complete replayable snapshot of derived ranks.
+- Passport: non-rating achievement and encounter history.
+- Pit: opt-in Gurubashi open competition, separate score.
+- Heat: eligible distinct opponents defeated during current Pit life.
+- War Horn: coarse opt-in expiring call for help.
+- Uploader: optional external file watcher; Lua addon is not an HTTP client.
+- Awaiting peer: report lacks enough independent evidence; no rating yet.

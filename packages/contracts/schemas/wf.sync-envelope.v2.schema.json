@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azeroth-combat-league/schemas/wf.sync-envelope.v2.schema.json",
+  "title": "Sync Envelope v2",
+  "description": "WFP2 export payload: a batch of match reports from one installation.",
+  "type": "object",
+  "required": ["schema", "installationId", "build", "addonVersion", "exportedAtMs", "reports"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "wf.sync-envelope.v2" },
+    "installationId": { "type": "string", "format": "uuid" },
+    "build": { "type": "string", "maxLength": 64 },
+    "addonVersion": { "type": "string", "maxLength": 64 },
+    "exportedAtMs": { "type": "integer", "minimum": 0 },
+    "reports": {
+      "type": "array",
+      "maxItems": 25,
+      "items": { "$ref": "wf.match-report.v2.schema.json" }
+    }
+  }
+}

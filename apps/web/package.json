@@ -1,0 +1,29 @@
+{
+  "name": "@acl/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Azeroth Combat League website — leaderboards, matches, rules, events.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@acl/contracts": "workspace:*",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "6.30.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.0",
+    "@types/react": "18.3.18",
+    "@types/react-dom": "18.3.5",
+    "@vitejs/plugin-react": "4.3.4",
+    "typescript": "5.9.3",
+    "vite": "5.4.19",
+    "vitest": "3.2.4"
+  }
+}

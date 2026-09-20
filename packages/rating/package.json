@@ -1,0 +1,23 @@
+{
+  "name": "@acl/rating",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Community Elo v1 (community-elo-1): exact deterministic rating engine. docs/09",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.0",
+    "typescript": "5.9.3",
+    "vitest": "3.2.4"
+  }
+}

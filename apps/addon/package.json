@@ -1,0 +1,14 @@
+{
+  "name": "@acl/addon",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Azeroth Combat League WoW addon — contract duels, evidence recording, sync outbox.",
+  "scripts": {
+    "test": "node tools/run-tests.mjs",
+    "package": "node tools/package.mjs",
+    "typecheck": "node tools/check-syntax.mjs"
+  },
+  "devDependencies": {
+    "fengari": "^0.1.4"
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azeroth-combat-league/schemas/wf.addon-update.v1.schema.json",
+  "title": "Addon Update v1",
+  "description": "WFU1 website-to-addon snapshot: receipts and last-known ratings. Display-only, never authoritative.",
+  "type": "object",
+  "required": ["schema", "accountId", "snapshotSequence", "issuedAtMs", "characters", "receipts", "configVersion"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "wf.addon-update.v1" },
+    "accountId": { "type": "string", "format": "uuid" },
+    "snapshotSequence": { "type": "integer", "minimum": 1 },
+    "issuedAtMs": { "type": "integer", "minimum": 0 },
+    "characters": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "required": ["characterId", "ladders"],
+        "additionalProperties": false,
+        "properties": {
+          "characterId": { "type": "string", "format": "uuid" },
+          "ladders": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["seasonId", "poolId", "ladder", "ratingMilli", "placementSeries", "placementOpponents", "generationId"],
+              "additionalProperties": false,
+              "properties": {
+                "seasonId": { "type": "string", "format": "uuid" },
+                "poolId": { "type": "string", "format": "uuid" },
+                "ladder": { "enum": ["open", "mirror"] },
+                "ratingMilli": { "type": "integer", "minimum": 0 },
+                "placementSeries": { "type": "integer", "minimum": 0 },
+                "placementOpponents": { "type": "integer", "minimum": 0 },
+                "generationId": { "type": "string", "format": "uuid" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "receipts": {
+      "type": "array",
+      "maxItems": 25,
+      "items": {
+        "type": "object",
+        "required": ["installationId", "nonce", "bodyDigest", "receiptId", "status"],
+        "additionalProperties": false,
+        "properties": {
+          "installationId": { "type": "string", "format": "uuid" },
+          "nonce": { "type": "string", "maxLength": 128 },
+          "bodyDigest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "receiptId": { "type": "string", "format": "uuid" },
+          "status": {
+            "enum": ["accepted", "duplicate", "rejected", "awaiting_peer", "corroborated", "disputed", "rating_pending"]
+          }
+        }
+      }
+    },
+    "configVersion": { "type": "string", "maxLength": 64 },
+    "rulesets": {
+      "type": "array",
+      "maxItems": 16,
+      "description": "Published immutable ruleset versions (docs/08). Data only — addons must validate and never execute.",
+      "items": {
+        "type": "object",
+        "required": ["rulesetId", "versionId", "version", "name", "description", "standard", "rules"],
+        "additionalProperties": false,
+        "properties": {
+          "rulesetId": { "type": "string", "format": "uuid" },
+          "versionId": { "type": "string", "format": "uuid" },
+          "version": { "type": "integer", "minimum": 1 },
+          "name": { "type": "string", "maxLength": 64 },
+          "description": { "type": "string", "maxLength": 512 },
+          "standard": { "type": "boolean" },
+          "rules": {
+            "type": "array",
+            "maxItems": 64,
+            "items": {
+              "type": "object",
+              "required": ["ruleId", "category", "action", "phase", "sanction"],
+              "additionalProperties": false,
+              "properties": {
+                "ruleId": { "type": "string", "maxLength": 96 },
+                "category": { "type": "string", "maxLength": 48 },
+                "action": { "enum": ["allow", "deny", "limit"] },
+                "phase": { "enum": ["preparation", "ready", "active", "between_games", "series_end"] },
+                "itemIds": { "type": "array", "maxItems": 32, "items": { "type": "integer", "minimum": 0 } },
+                "effectIds": { "type": "array", "maxItems": 32, "items": { "type": "integer", "minimum": 0 } },
+                "countLimit": { "type": "integer", "minimum": 0, "maximum": 99 },
+                "detectorId": { "type": "string", "maxLength": 64 },
+                "sanction": { "enum": ["game_loss", "void_game", "none"] }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

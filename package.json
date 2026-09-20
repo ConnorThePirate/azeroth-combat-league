@@ -1,0 +1,23 @@
+{
+  "name": "azeroth-combat-league",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Community PvP platform for WoW Forever: addon, website, companion uploader, shared contracts, rating engine.",
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "dev": "pnpm -r --parallel run dev",
+    "build": "pnpm -r run build",
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "test:e2e": "pnpm -r run test:e2e --if-present",
+    "db:reset": "pnpm --filter @acl/backend run db:reset",
+    "db:test": "pnpm --filter @acl/backend run db:test",
+    "addon:test": "node apps/addon/tools/run-tests.mjs",
+    "addon:package": "node apps/addon/tools/package.mjs",
+    "test:reference": "node --test reference/rating.test.mjs"
+  }
+}

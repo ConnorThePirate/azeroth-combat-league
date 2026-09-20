@@ -1,0 +1,11 @@
+.git
+node_modules
+**/node_modules
+**/dist
+apps/*/dist
+.github
+docs
+*.Zone.Identifier
+**/*.Zone.Identifier
+.env
+.env.*

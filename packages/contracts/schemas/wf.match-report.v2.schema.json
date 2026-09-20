@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azeroth-combat-league/schemas/wf.match-report.v2.schema.json",
+  "title": "Match Report v2",
+  "description": "One client's bounded observation of a contracted series. docs/06",
+  "type": "object",
+  "required": [
+    "schema", "sessionId", "contractHash", "originCharacterId", "installationId",
+    "nonce", "build", "addonVersion", "detectorCatalogVersion",
+    "proposedAtMs", "acceptedAtMs", "startedAtMs", "finishedAtMs",
+    "games", "coverage", "attestations", "peerDigests"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "wf.match-report.v2" },
+    "sessionId": { "type": "string", "format": "uuid" },
+    "contractHash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "originCharacterId": { "type": "string", "format": "uuid" },
+    "installationId": { "type": "string", "format": "uuid" },
+    "nonce": { "type": "string", "maxLength": 128 },
+    "build": { "type": "string", "maxLength": 64 },
+    "addonVersion": { "type": "string", "maxLength": 64 },
+    "detectorCatalogVersion": { "type": "string", "maxLength": 64 },
+    "proposedAtMs": { "type": ["integer", "null"], "minimum": 0 },
+    "acceptedAtMs": { "type": ["integer", "null"], "minimum": 0 },
+    "startedAtMs": { "type": ["integer", "null"], "minimum": 0 },
+    "finishedAtMs": { "type": ["integer", "null"], "minimum": 0 },
+    "games": {
+      "type": "array",
+      "maxItems": 31,
+      "items": {
+        "type": "object",
+        "required": [
+          "index", "observedStartMs", "observedEndMs",
+          "claimedWinnerCharacterId", "finishReason",
+          "facts", "interferenceCandidates", "violationCandidates"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "index": { "type": "integer", "minimum": 0, "maximum": 31 },
+          "observedStartMs": { "type": ["integer", "null"], "minimum": 0 },
+          "observedEndMs": { "type": ["integer", "null"], "minimum": 0 },
+          "claimedWinnerCharacterId": { "type": ["string", "null"], "format": "uuid" },
+          "finishReason": {
+            "enum": ["surrender", "bounds", "death", "timeout", "disconnect", "interrupted", "unknown"]
+          },
+          "facts": { "type": "array", "items": { "type": "object" } },
+          "interferenceCandidates": { "type": "array", "items": { "type": "object" } },
+          "violationCandidates": { "type": "array", "items": { "type": "object" } }
+        }
+      }
+    },
+    "coverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["ruleId", "status", "gameIndex", "intervalStartMs", "intervalEndMs"],
+        "additionalProperties": false,
+        "properties": {
+          "ruleId": { "type": "string", "maxLength": 128 },
+          "status": { "enum": ["observable", "corroborated", "attested", "unavailable"] },
+          "gameIndex": { "type": ["integer", "null"], "minimum": 0, "maximum": 31 },
+          "intervalStartMs": { "type": ["integer", "null"], "minimum": 0 },
+          "intervalEndMs": { "type": ["integer", "null"], "minimum": 0 }
+        }
+      }
+    },
+    "attestations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["contractHash", "outcomeDigest", "signerCharacterId"],
+        "additionalProperties": false,
+        "properties": {
+          "contractHash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "outcomeDigest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "signerCharacterId": { "type": "string", "format": "uuid" }
+        }
+      }
+    },
+    "peerDigests": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+    }
+  }
+}
