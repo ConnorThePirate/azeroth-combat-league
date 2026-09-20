@@ -62,7 +62,7 @@ grant execute on function claim_job(text[], interval) to service_role;
 
 create or replace function complete_job(p_id bigint, p_cursor jsonb default null)
 returns void
-language plpgsql security definer set search_path = public as
+language sql security definer set search_path = public as
 $$
   update jobs set state = 'done', lease_until = null,
          cursor = coalesce(p_cursor, cursor)
@@ -73,7 +73,7 @@ grant execute on function complete_job(bigint, jsonb) to service_role;
 
 create or replace function fail_job(p_id bigint, p_reason text, p_retry_after interval default '1 minute')
 returns void
-language plpgsql security definer set search_path = public as
+language sql security definer set search_path = public as
 $$
   update jobs set
     state = case when attempt_count >= max_attempts then 'dead' else 'pending' end,
