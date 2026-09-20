@@ -78,11 +78,17 @@ describe.skipIf(!process.env.DATABASE_URL)("postgres wiring", () => {
 
     // FK prerequisites + the three test characters (identical ids to the
     // unit suite so report/contract shapes match api.test.ts)
-    await pool.query(`
+    // (60,60) is unique — bootstrap 0013 may already own it, so read back the
+    // surviving row's id rather than assuming U(4) was inserted.
+    const bracket = await pool.query<{ id: string }>(`
       insert into level_brackets (id, level_min, level_max)
-        values ('${U(4)}', 60, 60) on conflict do nothing;
+        values ('${U(4)}', 60, 60)
+        on conflict (level_min, level_max) do update set level_min = excluded.level_min
+        returning id`);
+    const bracketId = bracket.rows[0]!.id;
+    await pool.query(`
       insert into seasons (id, name, level_bracket_id, pool_scheme, starts_at)
-        values ('${season}', 'CI Season', '${U(4)}', '{}'::jsonb, now())
+        values ('${season}', 'CI Season', '${bracketId}', '{}'::jsonb, now())
         on conflict do nothing;
       insert into competition_pools (id, name, scheme)
         values ('${U(2)}', 'ci pool', '{}'::jsonb) on conflict do nothing;
