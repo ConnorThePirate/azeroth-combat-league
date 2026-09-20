@@ -28,6 +28,11 @@ in `.env.example` — copy values from there, never commit real ones.
    supabase db push          # applies supabase/migrations/*.sql in order
    ```
    `supabase/seed.sql` is **dev-only** — do not run it against production.
+   Migration `0013_bootstrap.sql` carries the operational config a live DB
+   needs (client build, honest feature flags, cap-60 bracket, Forever pool,
+   elo policy, live Season 1, Standard + community rulesets) and applies with
+   the rest — no manual data step. Its season id matches the server's
+   `ACL_SEASON` default, so nothing else needs configuring.
 4. **Auth** (Dashboard → Authentication):
    - Settings → API: copy the **project URL** (`SUPABASE_URL` /
      `VITE_SUPABASE_URL`) and the **anon public key** (`SUPABASE_ANON_KEY` /
