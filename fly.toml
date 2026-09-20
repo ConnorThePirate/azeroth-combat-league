@@ -9,6 +9,10 @@ primary_region = 'ams'
 [build]
   dockerfile = 'packages/server/Dockerfile'
 
+# Secrets live in `fly secrets set`, not here — see docs/32_DEPLOY_RUNBOOK.md:
+#   DATABASE_URL (PG mode switch), SUPABASE_URL + SUPABASE_ANON_KEY
+#   (Supabase Auth session validation; without them session routes 401),
+#   ACL_WEB_ORIGIN, ACL_ADMIN_ACCOUNTS.
 [env]
   ACL_PORT = '8080'
   ACL_SEED = '0'

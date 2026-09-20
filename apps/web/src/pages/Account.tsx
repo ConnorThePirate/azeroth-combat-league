@@ -1,8 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useStatus, nowFor } from "../data/source";
-import { Freshness } from "../components/common";
-import { clearAccount, ensureSession, storedAccount, storeAccount } from "../data/api";
+import { ClassTag, Freshness, IdentityBadge } from "../components/common";
+import { PlayerLink } from "../components/PlayerModal";
+import {
+  api, apiConfigured, clearAccount, ensureSession, getSessionToken,
+  storedAccount, storeAccount, supabase, type MeResponse,
+} from "../data/api";
+import type { VerificationTier, WowClass } from "../data/types";
+
+const CLASS_BY_ID: Record<number, WowClass> = {
+  1: "warrior", 2: "paladin", 3: "hunter", 4: "rogue", 5: "priest",
+  6: "shaman", 7: "mage", 8: "warlock", 9: "druid",
+};
+
+type AuthMode = "signin" | "signup";
 
 export default function AccountPage() {
   const { data: STATUS, source } = useStatus();
@@ -11,6 +23,108 @@ export default function AccountPage() {
   const [signed, setSigned] = useState(!!storedAccount());
   const [busy, setBusy] = useState(false);
 
+  // Supabase Auth state — null user = not signed in
+  const [sbUser, setSbUser] = useState<{ email: string | null } | null>(null);
+  const [me, setMe] = useState<MeResponse | null>(null);
+  const [meLoading, setMeLoading] = useState(false);
+  const [checking, setChecking] = useState(!!supabase);
+  const [mode, setMode] = useState<AuthMode>("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [notice, setNotice] = useState<string | null>(null);
+
+  /** Pull the provisioned account + characters once a session exists. */
+  async function loadMe(user: { email: string | null }) {
+    setSbUser(user);
+    setChecking(false);
+    const token = await getSessionToken();
+    if (!token || !apiConfigured()) { setMe(null); return; }
+    setMeLoading(true);
+    try {
+      const m = await api.me(token);
+      setMe(m);
+      // lets Events/Pair prefill the real account id for this session
+      storeAccount(m.accountId);
+      setAcct(m.accountId);
+      setSigned(true);
+    } catch {
+      setMe(null); // token rejected — show the session without detail
+    } finally {
+      setMeLoading(false);
+    }
+  }
+
+  // Supabase session bootstrap — getSession() also finishes the OAuth
+  // redirect-back (supabase-js parses the URL hash on load).
+  useEffect(() => {
+    if (!supabase) return;
+    let live = true;
+    const { data: { subscription } } =
+      supabase.auth.onAuthStateChange((_event, s) => {
+        if (s?.user) void loadMe({ email: s.user.email ?? null });
+        else if (live) { setSbUser(null); setMe(null); setChecking(false); }
+      });
+    supabase.auth.getSession()
+      .then(({ data }) => {
+        if (!live) return;
+        if (data.session?.user) {
+          void loadMe({ email: data.session.user.email ?? null });
+        } else {
+          setChecking(false);
+        }
+      })
+      .catch(() => { if (live) setChecking(false); });
+    return () => { live = false; subscription.unsubscribe(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function submitAuth() {
+    if (!supabase) return;
+    setBusy(true); setNotice(null);
+    try {
+      if (mode === "signin") {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email.trim(), password,
+        });
+        if (error) throw error;
+        // onAuthStateChange -> loadMe picks the session up
+      } else {
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim(), password,
+        });
+        if (error) throw error;
+        if (!data.session) {
+          // email confirmation enabled — nothing to validate against yet
+          setNotice("Check your email to confirm your account, then sign in.");
+          setMode("signin");
+        }
+      }
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : "sign-in failed");
+    } finally { setBusy(false); }
+  }
+
+  async function oauth(provider: "discord" | "google") {
+    if (!supabase) return;
+    setBusy(true); setNotice(null);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}/account` },
+    });
+    // on success the browser is navigating to the provider — nothing to do
+    if (error) { setNotice(error.message); setBusy(false); }
+  }
+
+  async function signOutAll() {
+    setBusy(true);
+    try {
+      if (supabase) await supabase.auth.signOut().catch(() => undefined);
+      clearAccount();
+      setSbUser(null); setMe(null); setSigned(false);
+    } finally { setBusy(false); }
+  }
+
+  // Dev path (no Supabase env) — unchanged account-id login.
   async function signIn() {
     const a = acct.trim();
     if (!a) return;
@@ -29,33 +143,161 @@ export default function AccountPage() {
         <h1>Account</h1>
       </div>
 
-      <div className="card">
-        <h2>Sign in</h2>
-        {signed ? (
-          <div className="row between">
-            <span>Signed in as <span className="mono">{acct}</span></span>
-            <button className="btn ghost" onClick={signOut}>Sign out</button>
-          </div>
-        ) : (
-          <>
-            <p className="dim small">
-              Browsing is open — leaderboards, rules, and events need no
-              account. Sign in to sign up for events, run your own night,
-              or link characters. (Dev sign-in until Battle.net lands.)
-            </p>
-            <div className="row">
-              <input type="text" value={acct} placeholder="account id"
-                onChange={(e) => setAcct(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") void signIn(); }}
-                style={{ maxWidth: "14rem" }} />
-              <button className="btn primary" disabled={busy || !acct.trim()}
-                onClick={signIn}>
-                {busy ? "Signing in…" : "Sign in"}
-              </button>
+      {supabase ? (
+        <div className="card">
+          <h2>Sign in</h2>
+          {checking ? (
+            <p className="dim small">Checking your session…</p>
+          ) : sbUser ? (
+            <>
+              <div className="row between">
+                <span>
+                  Signed in{sbUser.email ? <> as <strong>{sbUser.email}</strong></> : ""}
+                </span>
+                <button className="btn ghost" disabled={busy} onClick={signOutAll}>
+                  Sign out
+                </button>
+              </div>
+              {meLoading ? (
+                <p className="dim small" style={{ marginTop: "0.6rem" }}>
+                  Loading account…
+                </p>
+              ) : me ? (
+                <div style={{ marginTop: "0.8rem" }}>
+                  <p className="dim small" style={{ margin: "0 0 0.4rem" }}>
+                    Account <span className="mono">{me.accountId}</span>
+                  </p>
+                  {me.characters.length > 0 ? (
+                    <table className="board">
+                      <thead>
+                        <tr><th>Character</th><th>Class</th><th>Identity</th></tr>
+                      </thead>
+                      <tbody>
+                        {me.characters.map((c) => (
+                          <tr key={c.id}>
+                            <td>
+                              <PlayerLink id={c.id} name={c.name}
+                                cls={CLASS_BY_ID[c.classId]} />
+                            </td>
+                            <td>
+                              {CLASS_BY_ID[c.classId]
+                                ? <ClassTag cls={CLASS_BY_ID[c.classId]!} />
+                                : <span className="dim">unknown</span>}
+                            </td>
+                            <td>
+                              <IdentityBadge
+                                tier={c.verificationTier as VerificationTier} />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <p className="dim small" style={{ margin: 0 }}>
+                      No characters on this account yet — pair the companion
+                      below, or check in with event staff to verify one.
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="dim small" style={{ marginTop: "0.6rem" }}>
+                  {apiConfigured()
+                    ? "Account details unavailable — the API did not recognize the session."
+                    : "API not configured — signed in, but account details need VITE_API_URL."}
+                </p>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="dim small">
+                Browsing is open — leaderboards, rules, and events need no
+                account. Sign in to sign up for events, run your own night,
+                or link characters.
+              </p>
+              <div className="row" style={{ marginBottom: "0.8rem" }}>
+                <button className={`btn${mode === "signin" ? " primary" : ""}`}
+                  onClick={() => { setMode("signin"); setNotice(null); }}>
+                  Sign in
+                </button>
+                <button className={`btn${mode === "signup" ? " primary" : ""}`}
+                  onClick={() => { setMode("signup"); setNotice(null); }}>
+                  Create account
+                </button>
+              </div>
+              <div className="field">
+                <label htmlFor="auth-email">Email</label>
+                <input id="auth-email" type="email" value={email}
+                  autoComplete="email" style={{ maxWidth: "16rem" }}
+                  onChange={(e) => setEmail(e.target.value)} />
+              </div>
+              <div className="field">
+                <label htmlFor="auth-pass">Password</label>
+                <input id="auth-pass" type="password" value={password}
+                  autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                  style={{ maxWidth: "16rem" }}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") void submitAuth(); }} />
+              </div>
+              {notice && (
+                <div className="notice" style={{ marginBottom: "0.8rem" }}>{notice}</div>
+              )}
+              <div className="row">
+                <button className="btn primary"
+                  disabled={busy || !email.trim() || !password}
+                  onClick={submitAuth}>
+                  {busy ? "…" : mode === "signin" ? "Sign in" : "Create account"}
+                </button>
+                <button className="btn" disabled={busy}
+                  onClick={() => void oauth("discord")}>
+                  Continue with Discord
+                </button>
+                <button className="btn" disabled={busy}
+                  onClick={() => void oauth("google")}>
+                  Continue with Google
+                </button>
+              </div>
+              <p className="dim small" style={{ marginTop: "0.6rem" }}>
+                Discord/Google appear when the deployment enables those
+                providers; email sign-up may ask you to confirm your address
+                first.
+              </p>
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="card">
+          <h2>Sign in</h2>
+          {signed ? (
+            <div className="row between">
+              <span>Signed in as <span className="mono">{acct}</span></span>
+              <button className="btn ghost" onClick={signOut}>Sign out</button>
             </div>
-          </>
-        )}
-      </div>
+          ) : (
+            <>
+              <p className="dim small">
+                Browsing is open — leaderboards, rules, and events need no
+                account. Sign in to sign up for events, run your own night,
+                or link characters.
+              </p>
+              <div className="notice info" style={{ marginBottom: "0.8rem" }}>
+                Development sign-in — no password, no verification. It exists
+                for local testing and disappears once Supabase Auth is
+                configured on this deployment.
+              </div>
+              <div className="row">
+                <input type="text" value={acct} placeholder="account id"
+                  onChange={(e) => setAcct(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") void signIn(); }}
+                  style={{ maxWidth: "14rem" }} />
+                <button className="btn primary" disabled={busy || !acct.trim()}
+                  onClick={signIn}>
+                  {busy ? "Signing in…" : "Sign in"}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       <div className="card">
         <h2>Identity</h2>

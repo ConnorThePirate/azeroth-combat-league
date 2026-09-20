@@ -3,9 +3,24 @@
  *
  * Set VITE_API_URL to talk to a live backend; when unset or unreachable,
  * useData() falls back to fixtures so the site works standalone.
+ *
+ * Sign-in: when VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY are set the app
+ * uses Supabase Auth (email + OAuth); the API validates the resulting
+ * access token against /auth/v1/user. Without them everything behaves as
+ * before — fixtures plus the labelled dev account-id login.
  */
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 const BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ?? null;
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+
+/** The Supabase Auth client — null unless both env vars are configured. */
+export const supabase: SupabaseClient | null =
+  SUPABASE_URL && SUPABASE_ANON_KEY
+    ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
 
 export function apiConfigured(): boolean {
   return BASE !== null;
@@ -108,6 +123,8 @@ export const api = {
       `/v1/events/${eventId}/signup`, { characterId }, token),
   session: (accountId: string) =>
     post<{ token: string }>("/v1/session", { accountId }),
+  me: (token: string) =>
+    get<MeResponse>("/v1/me", token),
   world: () =>
     get<{
       war: WorldEntryItem[]; pit: WorldEntryItem[]; scoringLive: boolean;
@@ -121,6 +138,14 @@ export const api = {
     post<{ status: string; message: string }>(
       `/v1/events/${eventId}/staff`, { accountId, role }, token),
 };
+
+/** GET /v1/me — the signed-in account and its characters. */
+export interface MeResponse {
+  accountId: string;
+  characters: {
+    id: string; name: string; classId: number; verificationTier: string;
+  }[];
+}
 
 export interface WorldEntryItem {
   rank: number; playerId: string; name: string; wowClass: string;
@@ -160,9 +185,28 @@ export function clearAccount(): void {
   ls.del("acl.account");
   ss.del("acl.session");
 }
+
+/**
+ * The bearer token for authenticated API calls. A live Supabase session's
+ * access_token wins; otherwise the cached dev-login token (local dev).
+ */
+export async function getSessionToken(): Promise<string | null> {
+  if (supabase) {
+    const { data } = await supabase.auth.getSession()
+      .catch(() => ({ data: { session: null } }));
+    if (data.session?.access_token) return data.session.access_token;
+  }
+  return ss.get("acl.session");
+}
+
+/**
+ * Token for authenticated calls: the Supabase JWT when signed in, else the
+ * dev account-id login (POST /v1/session, dev server only — it 404s in
+ * production, where the dev path is disabled by design).
+ */
 export async function ensureSession(accountId: string): Promise<string> {
-  const cached = ss.get("acl.session");
-  if (cached) return cached;
+  const tok = await getSessionToken();
+  if (tok) return tok;
   const { token } = await api.session(accountId);
   ss.set("acl.session", token);
   return token;

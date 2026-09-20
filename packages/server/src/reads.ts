@@ -214,6 +214,19 @@ export class InMemoryReadModel implements ReadModel {
     return this.summarize(matchId);
   }
 
+  /** The signed-in account's characters — /v1/me; dev names resolve via the
+   *  seeded names map like every other read. */
+  async myCharacters(accountId: string) {
+    return [...this.s.characters.values()]
+      .filter((c) => c.accountId === accountId)
+      .sort((a, b) => (this.names.get(a.id) ?? a.id)
+        .localeCompare(this.names.get(b.id) ?? b.id))
+      .map((c) => ({
+        id: c.id, name: this.names.get(c.id) ?? c.id.slice(0, 8),
+        classId: c.classId, verificationTier: c.verificationTier,
+      }));
+  }
+
   /** Rating block for one ladder from the active generation, or null. */
   private ladderBlock(seasonId: string, ladder: "open" | "mirror", characterId: string,
                       classId: number) {

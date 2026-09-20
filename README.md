@@ -66,6 +66,19 @@ Practice duels work immediately with no account.
 **Companion:** `acl-companion setup <wow dir>` → `pair` → `install --autostart`.
 Once. After that the companion starts when WoW does and exits with it.
 
+## Authentication
+
+Production sign-in runs on **Supabase Auth**: email + password plus OAuth
+providers (Discord, Google) enabled in the Supabase dashboard — that part is
+dashboard config, not code. The site (`VITE_SUPABASE_URL` +
+`VITE_SUPABASE_ANON_KEY`) sends the session access token as a bearer token;
+the API (`SUPABASE_URL` + `SUPABASE_ANON_KEY`) validates it against
+`/auth/v1/user` and auto-provisions a profile + account on first sign-in
+(`accounts.auth_user_id`, migration 0012). For beta, the email-confirmation
+toggle in the Supabase dashboard controls whether sign-up needs an inbox
+round-trip. Local dev keeps the labelled development sign-in
+(`POST /v1/session`), which is disabled whenever `DATABASE_URL` is set.
+
 ## Deploying
 
 Beta infrastructure is deliberately cheap: static site on **Cloudflare Pages**,

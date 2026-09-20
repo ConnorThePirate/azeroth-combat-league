@@ -267,6 +267,12 @@ export async function createDeps(): Promise<ApiDeps> {
       ssl: process.env.PGSSL === "disable" ? undefined : { rejectUnauthorized: false },
     });
     const deps = createPgDeps(pool);
+    if (!process.env[PgAuthStore.ENV.url] || !process.env[PgAuthStore.ENV.anonKey]) {
+      console.warn(
+        `acl api: ${PgAuthStore.ENV.url}/${PgAuthStore.ENV.anonKey} unset — ` +
+        `Supabase session validation is off; sign-in, pairing approval, ` +
+        `event signup and admin routes will return 401`);
+    }
     try {
       // keeps /v1/status honest right after a redeploy
       await deps.generations!.runNow(SEASON);

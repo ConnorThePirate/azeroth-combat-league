@@ -7,7 +7,7 @@
  * as fixture-sourced — freshness UI can say so honestly.
  */
 import { useEffect, useState } from "react";
-import { api, apiConfigured, ss, type LeaderboardResponse, type MatchIndexItem, type RulesetItem } from "./api";
+import { api, apiConfigured, getSessionToken, type LeaderboardResponse, type MatchIndexItem, type RulesetItem } from "./api";
 import {
   PLAYERS, MATCHES, RULESETS, EVENTS, STATUS, SERVER_NOW, ladder, WORLD,
 } from "./fixtures";
@@ -182,7 +182,8 @@ export function useRulesets(): DataState<Ruleset[]> {
 
 export function useEvents(): DataState<ClubEvent[]> {
   return useRemote(EVENTS, async () => {
-    const token = ss.get("acl.session") ?? undefined;
+    // Supabase session or dev token — marks registered/managedByMe (api.ts)
+    const token = (await getSessionToken()) ?? undefined;
     const res = await api.events(token);
     return res.events.map((e) => {
       const { staff, ...rest } = e;

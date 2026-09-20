@@ -255,8 +255,163 @@ export class PgStore implements Store {
 // ---------------------------------------------------------------------------
 // AuthStore — installations + pair_requests (tokens stored as digests)
 
+/**
+ * SupabaseSessionValidator — resolves a bearer token to an app SessionToken.
+ *
+ * The token is a Supabase Auth access token (issued to the site by email or
+ * OAuth sign-in). We validate it by calling GoTrue's `GET /auth/v1/user`
+ * with the project's anon key; a 200 proves the session is live and yields
+ * the `auth.users.id`. That id maps to a platform account via
+ * `accounts.auth_user_id` (0007/0012) — first sign-in auto-provisions a
+ * profile + account so authenticated routes just work.
+ *
+ * A small TTL cache keeps Supabase off the hot path: validated sessions
+ * cache 60s, rejections 30s. Anything that is not a clean 200 — non-2xx,
+ * timeout, DB error — returns null, so failures degrade to 401, never 500.
+ */
+export class SupabaseSessionValidator {
+  /** Env vars the deployment must set for session auth (serve.ts warns). */
+  static readonly ENV = { url: "SUPABASE_URL", anonKey: "SUPABASE_ANON_KEY" } as const;
+  static readonly HIT_TTL_MS = 60_000;
+  static readonly MISS_TTL_MS = 30_000;
+
+  private readonly cache = new Map<string, {
+    session: SessionToken | null; untilMs: number;
+  }>();
+
+  constructor(
+    private readonly pool: Pool,
+    private readonly supabaseUrl: string | null,
+    private readonly supabaseAnonKey: string | null,
+  ) {}
+
+  /** False when SUPABASE_URL/SUPABASE_ANON_KEY are unset — every call null. */
+  get configured(): boolean {
+    return !!(this.supabaseUrl && this.supabaseAnonKey);
+  }
+
+  async getSession(token: string): Promise<SessionToken | null> {
+    if (!this.configured) return null;
+    const now = Date.now();
+    const hit = this.cache.get(token);
+    if (hit && hit.untilMs > now) return hit.session;
+    // validate() swallows nothing itself; a throw here (network, DB) means
+    // "cannot authenticate" — cache the miss briefly so an outage doesn't
+    // turn into a per-request timeout.
+    const session = await this.validate(token).catch(() => null);
+    if (this.cache.size > 512) {
+      for (const [k, v] of this.cache) {
+        if (v.untilMs <= now) this.cache.delete(k);
+      }
+    }
+    this.cache.set(token, {
+      session,
+      untilMs: now + (session ? SupabaseSessionValidator.HIT_TTL_MS
+        : SupabaseSessionValidator.MISS_TTL_MS),
+    });
+    return session;
+  }
+
+  private async validate(token: string): Promise<SessionToken | null> {
+    const res = await fetch(`${this.supabaseUrl}/auth/v1/user`, {
+      headers: {
+        apikey: this.supabaseAnonKey!,
+        authorization: `Bearer ${token}`,
+      },
+      signal: AbortSignal.timeout(5_000),
+    });
+    if (!res.ok) return null;
+    const user = await res.json() as {
+      id?: unknown; email?: unknown; user_metadata?: unknown;
+    };
+    if (typeof user.id !== "string" || !user.id) return null;
+    const accountId = await this.accountFor({
+      id: user.id,
+      email: typeof user.email === "string" ? user.email : undefined,
+      metadata: (user.user_metadata ?? {}) as Record<string, unknown>,
+    });
+    return accountId
+      ? { token, accountId, issuedAtMs: Date.now() }
+      : null;
+  }
+
+  /** The auth user's platform account, provisioning one on first sign-in. */
+  private async accountFor(user: {
+    id: string; email?: string | undefined; metadata: Record<string, unknown>;
+  }): Promise<string | null> {
+    const { rows } = await this.pool.query(
+      `select id from accounts where auth_user_id = $1`, [user.id]);
+    if (rows[0]) return rows[0].id as string;
+    return this.provision(user);
+  }
+
+  /**
+   * First sign-in: insert a profile (public_slug from the user's display
+   * name or email prefix) + an account linked by auth_user_id. A concurrent
+   * first sign-in can win the unique(auth_user_id) race — then we just read
+   * their row. Slug collisions retry with -2/-3 suffixes, then fall back to
+   * `player-<8 hex>` derived from the auth user id.
+   */
+  private async provision(user: {
+    id: string; email?: string | undefined; metadata: Record<string, unknown>;
+  }): Promise<string | null> {
+    const base = SupabaseSessionValidator.slugBase(user);
+    const fallback = `player-${user.id.replace(/-/g, "").slice(0, 8)}`;
+    const candidates = [...new Set([base, `${base}-2`, `${base}-3`, fallback])];
+    for (const slug of candidates) {
+      try {
+        const { rows: prof } = await this.pool.query(
+          `insert into profiles (public_slug) values ($1) returning id`, [slug]);
+        const { rows: acct } = await this.pool.query(
+          `insert into accounts (profile_id, auth_user_id) values ($1, $2)
+           on conflict (auth_user_id) do nothing returning id`,
+          [prof[0]!.id, user.id]);
+        if (acct[0]) return acct[0].id as string;
+        // lost the provisioning race — the winner's account exists now
+        const { rows: won } = await this.pool.query(
+          `select id from accounts where auth_user_id = $1`, [user.id]);
+        return (won[0]?.id as string) ?? null;
+      } catch (e) {
+        // 23505 unique_violation on profiles.public_slug — try the next slug
+        if ((e as { code?: string }).code === "23505") continue;
+        throw e;
+      }
+    }
+    return null;
+  }
+
+  /** Display-name-ish slug: user_metadata.name / full_name / email prefix. */
+  private static slugBase(user: {
+    id: string; email?: string | undefined; metadata: Record<string, unknown>;
+  }): string {
+    const meta = user.metadata;
+    const raw =
+      (typeof meta.name === "string" && meta.name) ||
+      (typeof meta.full_name === "string" && meta.full_name) ||
+      (user.email?.split("@")[0] ?? "");
+    const slug = raw.toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 32);
+    return slug || `player-${user.id.replace(/-/g, "").slice(0, 8)}`;
+  }
+}
+
 export class PgAuthStore implements AuthStore {
-  constructor(private readonly pool: Pool) {}
+  /** Env vars session validation reads — see SupabaseSessionValidator.ENV. */
+  static readonly ENV = SupabaseSessionValidator.ENV;
+  private readonly sessions: SupabaseSessionValidator;
+
+  constructor(private readonly pool: Pool, env: NodeJS.ProcessEnv = process.env) {
+    const url = env[PgAuthStore.ENV.url]?.replace(/\/+$/, "") || null;
+    const key = env[PgAuthStore.ENV.anonKey] || null;
+    this.sessions = new SupabaseSessionValidator(pool, url, key);
+  }
+
+  /** True when SUPABASE_URL + SUPABASE_ANON_KEY are set (serve.ts wiring). */
+  get supabaseAuthConfigured(): boolean {
+    return this.sessions.configured;
+  }
 
   async savePair(r: PairRequest): Promise<void> {
     await this.pool.query(
@@ -352,9 +507,12 @@ export class PgAuthStore implements AuthStore {
       [digest(token)]);
   }
 
-  // Sessions are app-level (Supabase Auth in production); kept minimal here.
-  async saveSession(_s: SessionToken): Promise<void> { /* sessions live in Supabase Auth */ }
-  async getSession(_t: string): Promise<SessionToken | null> { return null; }
+  // Sessions are owned by Supabase Auth — issued/refreshed/revoked there —
+  // so there is nothing to persist here; getSession only validates.
+  async saveSession(_s: SessionToken): Promise<void> { /* Supabase Auth owns sessions */ }
+  async getSession(t: string): Promise<SessionToken | null> {
+    return this.sessions.getSession(t);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -499,6 +657,18 @@ export class PgReadModel implements ReadModel {
 
   async matchesIndex(limit = 50): Promise<MatchIndexEntry[]> {
     return this.matchIndexRows("true", [], limit);
+  }
+
+  /** The signed-in account's own characters — /v1/me. */
+  async myCharacters(accountId: string) {
+    const { rows } = await this.pool.query(
+      `select id, name, class_id, verification_tier
+       from characters where account_id = $1 order by created_at, name`, [accountId]);
+    return rows.map((r) => ({
+      id: r.id as string, name: r.name as string,
+      classId: r.class_id as number,
+      verificationTier: r.verification_tier as string,
+    }));
   }
 
   async matchDetail(matchId: string) {

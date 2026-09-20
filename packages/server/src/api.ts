@@ -137,6 +137,10 @@ export interface ReadModel {
   matchesIndex(limit?: number): Promise<MatchIndexEntry[]>;
   matchDetail(matchId: string): Promise<unknown | null>;
   playerDetail(playerId: string): Promise<unknown | null>;
+  /** The signed-in account's own characters — backs GET /v1/me. */
+  myCharacters(accountId: string): Promise<{
+    id: string; name: string; classId: number; verificationTier: string;
+  }[]>;
   /** Immutable published ruleset versions (docs/08); newest per ruleset. */
   rulesets(): Promise<PublishedRuleset[]>;
   siteStatus(): Promise<unknown>;
@@ -564,6 +568,16 @@ export async function handleRequest(deps: ApiDeps, req: ApiRequest): Promise<Api
     const token = "acls_" + randomUUID().replace(/-/g, "");
     await deps.auth.saveSession({ token, accountId: b.accountId, issuedAtMs: Date.now() });
     return json(200, { token, accountId: b.accountId });
+  }
+
+  // --- who am I: the session's account + its characters -------------------
+  if (method === "GET" && path === "/v1/me") {
+    const s = await sessionAuth(deps, req);
+    if ("status" in s) return s;
+    return json(200, {
+      accountId: s.accountId,
+      characters: await deps.reads.myCharacters(s.accountId),
+    });
   }
 
   // --- reads --------------------------------------------------------------

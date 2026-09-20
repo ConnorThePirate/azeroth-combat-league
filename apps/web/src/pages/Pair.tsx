@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import { apiConfigured } from "../data/api";
+import { apiConfigured, getSessionToken } from "../data/api";
 
 /**
  * Pairing approval (docs/27): the companion shows a code; the signed-in
@@ -12,7 +12,6 @@ const API = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/,
 export default function PairPage() {
   const [params] = useSearchParams();
   const [code, setCode] = useState(params.get("code") ?? "");
-  const [accountId, setAccountId] = useState("");
   const [state, setState] = useState<"idle" | "working" | "done" | "error">("idle");
   const [error, setError] = useState("");
 
@@ -20,16 +19,13 @@ export default function PairPage() {
     setState("working");
     setError("");
     try {
-      const sess = await fetch(`${API}/v1/session`, {
-        method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ accountId }),
-      }).then((r) => r.json()) as { token?: string };
-      if (!sess.token) throw new Error("sign-in failed");
+      const token = await getSessionToken();
+      if (!token) throw new Error("sign in on the Account page first");
       const res = await fetch(`${API}/v1/pair/approve`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          authorization: `Bearer ${sess.token}`,
+          authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ userCode: code.toUpperCase() }),
       });
@@ -83,17 +79,15 @@ export default function PairPage() {
               placeholder="e.g. VZ54" maxLength={12}
               style={{ fontFamily: "var(--mono)", letterSpacing: "0.2em", maxWidth: "12rem" }} />
           </div>
-          <div className="field">
-            <label htmlFor="pair-acct">Account (dev sign-in until Battle.net lands)</label>
-            <input id="pair-acct" type="text" value={accountId}
-              onChange={(e) => setAccountId(e.target.value)}
-              placeholder="acct-id" style={{ maxWidth: "16rem" }} />
-          </div>
           {error && <div className="notice">{error}</div>}
           <button className="btn primary" onClick={approve}
-            disabled={state === "working" || !code.trim() || !accountId.trim()}>
+            disabled={state === "working" || !code.trim()}>
             {state === "working" ? "Approving…" : "Approve device"}
           </button>
+          <p className="dim small" style={{ marginTop: "0.75rem" }}>
+            Uses your signed-in account — <Link to="/account">sign in first</Link> if
+            you haven't.
+          </p>
         </div>
       )}
     </>
