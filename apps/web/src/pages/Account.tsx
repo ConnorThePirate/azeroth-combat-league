@@ -84,7 +84,7 @@ function RegisterCharacter({ onDone }: { onDone: () => Promise<void> }) {
       const msg = e instanceof Error ? e.message : "registration failed";
       setNote(
         msg.includes("name_taken")
-          ? "That name is already taken on this realm — names are unique per community."
+          ? "That name is already taken — names are unique on the megaserver."
           : msg.includes("invalid_name")
             ? "Names are 2–12 letters — no spaces, numbers or punctuation."
             : msg.includes("invalid_")
@@ -100,8 +100,8 @@ function RegisterCharacter({ onDone }: { onDone: () => Promise<void> }) {
         Tell the league who you play. Characters register as{" "}
         <strong>claimed</strong> — they can duel and record matches
         immediately, but only count on the ladder after an event check-in
-        or provider verification. Names are unique per realm, first come
-        first served.
+        or provider verification. Names are unique on the megaserver,
+        first come first served.
       </p>
       <div className="row" style={{ alignItems: "flex-end", flexWrap: "wrap" }}>
         <div className="field" style={{ marginBottom: 0 }}>

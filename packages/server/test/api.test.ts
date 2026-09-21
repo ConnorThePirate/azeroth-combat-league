@@ -19,7 +19,7 @@ function req(method: string, path: string, body?: unknown, headers: Record<strin
 const bearer = (t: string) => ({ authorization: `Bearer ${t}` });
 
 const SCOPE = {
-  product: "wow-forever", environment: "beta", region: "eu", realmId: "forever",
+  product: "wow-forever", environment: "live", region: "global", realmId: "forever",
 };
 
 function makeDeps(): ApiDeps & { store: InMemoryStore; reads: InMemoryReadModel } {

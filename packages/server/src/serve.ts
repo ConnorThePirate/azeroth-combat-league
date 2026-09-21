@@ -237,14 +237,13 @@ const adminAccounts = (env: NodeJS.ProcessEnv = process.env): Set<string> =>
   new Set((env.ACL_ADMIN_ACCOUNTS ?? "")
     .split(",").map((s) => s.trim()).filter(Boolean));
 
-/** Identity scope self-registered characters land in (docs/26) — one
- *  deployment serves exactly one product/environment/region/realm. */
-const identityScope = (env: NodeJS.ProcessEnv = process.env) => ({
-  product: env.ACL_PRODUCT ?? "wow-forever",
-  environment: env.ACL_ENVIRONMENT ?? "beta",
-  region: env.ACL_REGION ?? "eu",
-  realmId: env.ACL_REALM ?? "forever",
-});
+/** Identity scope self-registered characters land in (docs/26). WoW
+ *  Forever runs a single PvP megaserver — there is exactly one realm and
+ *  no region split, so these are constants, not config. */
+const IDENTITY_SCOPE = {
+  product: "wow-forever", environment: "live",
+  region: "global", realmId: "forever",
+} as const;
 
 const verifyUrlBase = () =>
   process.env.ACL_VERIFY_URL ?? "http://localhost:5173/account/pair";
@@ -262,7 +261,7 @@ export function createPgDeps(pool: pg.Pool): ApiDeps {
     configVersion: "beta-v2",
     verifyUrlBase: verifyUrlBase(),
     seasonId: SEASON,
-    identityScope: identityScope(),
+    identityScope: { ...IDENTITY_SCOPE },
     generations: new GenerationRunner(store),
     adminAccounts: adminAccounts(),
     limiter: new RateLimiter(),
@@ -353,7 +352,7 @@ export async function createDeps(): Promise<ApiDeps> {
     configVersion: "beta-v2",
     verifyUrlBase: verifyUrlBase(),
     seasonId: SEASON,
-    identityScope: identityScope(),
+    identityScope: { ...IDENTITY_SCOPE },
     generations,
     adminAccounts: adminAccounts(),
     limiter: new RateLimiter(),

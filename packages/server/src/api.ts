@@ -351,8 +351,8 @@ export interface ApiDeps {
   configVersion: string;
   verifyUrlBase: string;   // e.g. https://site/pair
   seasonId: string;
-  /** Identity scope new characters register into (docs/26) — deployment
-   *  constants from ACL_PRODUCT/ACL_ENVIRONMENT/ACL_REGION/ACL_REALM. */
+  /** Identity scope new characters register into (docs/26) — fixed
+   *  constants in serve.ts: one WoW Forever PvP megaserver. */
   identityScope: {
     product: string; environment: string; region: string; realmId: string;
   };

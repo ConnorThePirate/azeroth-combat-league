@@ -201,7 +201,7 @@ describe.skipIf(!process.env.DATABASE_URL)("postgres wiring", () => {
     const name = `Ci${randomUUID().replace(/[^a-f]/gi, "").slice(0, 8)}`;
     const input = {
       accountId: ACCT_A, name, classId: 2, factionId: 0, level: 60,
-      product: "wow-forever", environment: "beta", region: "EU",
+      product: "wow-forever", environment: "live", region: "global",
       realmId: "forever",
     };
     const row = await deps.store.createCharacter(input);
