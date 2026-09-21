@@ -60,7 +60,8 @@ function MeCharacters({ me }: { me: MeResponse }) {
  *  claimed tier; only an event check-in or provider verification raises
  *  them, so the copy says that plainly. */
 function RegisterCharacter({ onDone }: { onDone: () => Promise<void> }) {
-  const [name, setName] = useState("");
+  const [first, setFirst] = useState("");
+  const [last, setLast] = useState("");
   const [classId, setClassId] = useState(1);
   const [factionId, setFactionId] = useState(0);
   const [level, setLevel] = useState("60");
@@ -69,8 +70,8 @@ function RegisterCharacter({ onDone }: { onDone: () => Promise<void> }) {
   const [ok, setOk] = useState<string | null>(null);
 
   async function submit() {
-    const n = name.trim();
-    if (!n) return;
+    const n = `${first.trim()} ${last.trim()}`.trim();
+    if (!first.trim() || !last.trim()) return;
     setBusy(true); setNote(null); setOk(null);
     try {
       const token = await getSessionToken();
@@ -78,7 +79,7 @@ function RegisterCharacter({ onDone }: { onDone: () => Promise<void> }) {
       const res = await api.createCharacter(
         { name: n, classId, factionId, level: Number(level) }, token);
       setOk(`${res.character.name} registered — claimed tier.`);
-      setName("");
+      setFirst(""); setLast("");
       await onDone(); // reload /v1/me so the character list picks it up
     } catch (e) {
       const msg = e instanceof Error ? e.message : "registration failed";
@@ -86,7 +87,7 @@ function RegisterCharacter({ onDone }: { onDone: () => Promise<void> }) {
         msg.includes("name_taken")
           ? "That name is already taken — names are unique on the megaserver."
           : msg.includes("invalid_name")
-            ? "Names are 2–12 letters — no spaces, numbers or punctuation."
+            ? "First and last name — 2–12 letters each, no numbers or punctuation."
             : msg.includes("invalid_")
               ? "A field was rejected — check class, faction and level (1–60)."
               : msg);
@@ -100,15 +101,22 @@ function RegisterCharacter({ onDone }: { onDone: () => Promise<void> }) {
         Tell the league who you play. Characters register as{" "}
         <strong>claimed</strong> — they can duel and record matches
         immediately, but only count on the ladder after an event check-in
-        or provider verification. Names are unique on the megaserver,
-        first come first served.
+        or provider verification. Forever names are{" "}
+        <strong>First&nbsp;Last</strong> — the pair is unique on the
+        megaserver, first come first served.
       </p>
       <div className="row" style={{ alignItems: "flex-end", flexWrap: "wrap" }}>
         <div className="field" style={{ marginBottom: 0 }}>
-          <label htmlFor="reg-name">Name</label>
-          <input id="reg-name" type="text" value={name} maxLength={12}
-            placeholder="Testadin" style={{ width: "10rem" }}
-            onChange={(e) => setName(e.target.value)} />
+          <label htmlFor="reg-first">First name</label>
+          <input id="reg-first" type="text" value={first} maxLength={12}
+            placeholder="Testadin" style={{ width: "8rem" }}
+            onChange={(e) => setFirst(e.target.value)} />
+        </div>
+        <div className="field" style={{ marginBottom: 0 }}>
+          <label htmlFor="reg-last">Last name</label>
+          <input id="reg-last" type="text" value={last} maxLength={12}
+            placeholder="Lightward" style={{ width: "8rem" }}
+            onChange={(e) => setLast(e.target.value)} />
         </div>
         <div className="field" style={{ marginBottom: 0 }}>
           <label htmlFor="reg-class">Class</label>
@@ -135,7 +143,8 @@ function RegisterCharacter({ onDone }: { onDone: () => Promise<void> }) {
             style={{ width: "5rem" }}
             onChange={(e) => setLevel(e.target.value)} />
         </div>
-        <button className="btn primary" disabled={busy || !name.trim()}
+        <button className="btn primary"
+          disabled={busy || !first.trim() || !last.trim()}
           onClick={submit}>
           {busy ? "Registering…" : "Register"}
         </button>

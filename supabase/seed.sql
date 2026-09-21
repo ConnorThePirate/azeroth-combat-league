@@ -87,11 +87,11 @@ insert into accounts (id, profile_id) values
   ('61000000-0000-4000-8000-000000000005', '60000000-0000-4000-8000-000000000005');
 
 insert into characters (id, account_id, product, environment, region, realm_id, name, class_id, faction_id, level, verification_tier, verified_at) values
-  ('62000000-0000-4000-8000-000000000001', '61000000-0000-4000-8000-000000000001', 'forever', 'beta', 'dev', 'forever-beta', 'Alpha', 8, 0, 30, 'witnessed', now()),
-  ('62000000-0000-4000-8000-000000000002', '61000000-0000-4000-8000-000000000002', 'forever', 'beta', 'dev', 'forever-beta', 'Bravo', 4, 0, 30, 'witnessed', now()),
-  ('62000000-0000-4000-8000-000000000003', '61000000-0000-4000-8000-000000000001', 'forever', 'beta', 'dev', 'forever-beta', 'AlphaAlt', 1, 0, 30, 'witnessed', now()),
-  ('62000000-0000-4000-8000-000000000004', '61000000-0000-4000-8000-000000000005', 'forever', 'beta', 'dev', 'forever-beta', 'Neddy', 9, 0, 22, 'claimed', null),
-  ('62000000-0000-4000-8000-000000000005', '61000000-0000-4000-8000-000000000003', 'forever', 'beta', 'dev', 'forever-beta', 'Rose', 5, 0, 30, 'provider_verified', now());
+  ('62000000-0000-4000-8000-000000000001', '61000000-0000-4000-8000-000000000001', 'forever', 'beta', 'dev', 'forever-beta', 'Alpha Dawnspear', 8, 0, 30, 'witnessed', now()),
+  ('62000000-0000-4000-8000-000000000002', '61000000-0000-4000-8000-000000000002', 'forever', 'beta', 'dev', 'forever-beta', 'Bravo Nightbloom', 4, 0, 30, 'witnessed', now()),
+  ('62000000-0000-4000-8000-000000000003', '61000000-0000-4000-8000-000000000001', 'forever', 'beta', 'dev', 'forever-beta', 'Alpha Altsworn', 1, 0, 30, 'witnessed', now()),
+  ('62000000-0000-4000-8000-000000000004', '61000000-0000-4000-8000-000000000005', 'forever', 'beta', 'dev', 'forever-beta', 'Neddy Cogsworth', 9, 0, 22, 'claimed', null),
+  ('62000000-0000-4000-8000-000000000005', '61000000-0000-4000-8000-000000000003', 'forever', 'beta', 'dev', 'forever-beta', 'Rose Thorne', 5, 0, 30, 'provider_verified', now());
 
 insert into installations (id, account_id, label, credential_digest, last_seen) values
   ('63000000-0000-4000-8000-000000000001', '61000000-0000-4000-8000-000000000001', 'A-desktop', 'dev-digest-a', now()),

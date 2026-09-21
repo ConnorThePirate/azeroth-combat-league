@@ -29,9 +29,9 @@ function makeDeps(): ApiDeps & { store: InMemoryStore; reads: InMemoryReadModel 
   const store = new InMemoryStore(names);
   const reads = new InMemoryReadModel(store, names);
   for (const [id, accountId, name, classId, tier] of [
-    [U(5), "acct-a", "Mangler", 1, "witnessed"],
-    [U(6), "acct-b", "Sneakthief", 4, "witnessed"],
-    [U(7), "acct-c", "Frostbolt", 7, "witnessed"],
+    [U(5), "acct-a", "Mangler Doomhowl", 1, "witnessed"],
+    [U(6), "acct-b", "Sneakthief Shadowvale", 4, "witnessed"],
+    [U(7), "acct-c", "Frostbolt Winterveil", 7, "witnessed"],
   ] as const) {
     store.characters.set(id, { id, accountId, classId, level: 60, verificationTier: tier });
     names.set(id, name);
@@ -42,13 +42,13 @@ function makeDeps(): ApiDeps & { store: InMemoryStore; reads: InMemoryReadModel 
     whenMs: Date.now() + 86400_000, venue: "Gadgetzan", status: "upcoming",
     cap: 2, signups: 0, description: "test event", organizerAccountId: "acct-a",
     staff: [
-      { name: "Mangler", role: "organizer", playerId: U(5), wowClass: "warrior" },
+      { name: "Mangler Doomhowl", role: "organizer", playerId: U(5), wowClass: "warrior" },
       { name: "Rose", role: "referee" },
     ],
   });
   const world = new InMemoryWorldBoard();
   world.seed("war", [
-    { playerId: U(5), name: "Mangler", wowClass: "warrior", points: 34, reports: 11 },
+    { playerId: U(5), name: "Mangler Doomhowl", wowClass: "warrior", points: 34, reports: 11 },
   ]);
   return {
     store, reads, auth: new InMemoryAuthStore(), events, world,
@@ -154,7 +154,7 @@ describe("api: report batch", () => {
     }).entries;
     expect(entries).toHaveLength(2);
     // one series each: still placing — progress shown, no number yet
-    expect(entries[0]!.name).toBe("Mangler"); // winner ordered first internally
+    expect(entries[0]!.name).toBe("Mangler Doomhowl"); // winner ordered first internally
     expect(entries[0]!.placement?.seriesDone).toBe(1);
   });
 
@@ -227,8 +227,8 @@ describe("api: reads", () => {
     expect(list).toHaveLength(1);
     const m = list[0]!;
     expect(m.id).toBe(U(1));
-    expect(m.a.name).toBe("Mangler");
-    expect(m.b.name).toBe("Sneakthief");
+    expect(m.a.name).toBe("Mangler Doomhowl");
+    expect(m.b.name).toBe("Sneakthief Shadowvale");
     expect(m.scoreA).toBe(2);
     expect(m.winnerId).toBe(U(5));
     expect(m.evidence).toBe("corroborated");
@@ -265,7 +265,7 @@ describe("api: reads", () => {
         meetings: number; lastPlayedMs: number }[];
       lastActiveAtMs: number;
     };
-    expect(p.name).toBe("Mangler");
+    expect(p.name).toBe("Mangler Doomhowl");
     expect(p.matches.map((m) => m.id)).toContain(U(1));
     expect(p.matches[0]!.winnerId).toBe(U(5));
     // 1 series → still placing; honest progress, not a fake number
@@ -276,7 +276,7 @@ describe("api: reads", () => {
     // rivalry card: 1 decided win over Sneakthief
     expect(p.rivals).toHaveLength(1);
     expect(p.rivals[0]).toMatchObject({
-      playerId: U(6), name: "Sneakthief", wins: 1, losses: 0, meetings: 1,
+      playerId: U(6), name: "Sneakthief Shadowvale", wins: 1, losses: 0, meetings: 1,
     });
   });
 
@@ -292,7 +292,7 @@ describe("api: reads", () => {
     // organizer-designated staff are the only scope in which "witness"
     // identity check-ins exist
     expect(events[0]!.staff).toEqual([
-      { name: "Mangler", role: "organizer", playerId: U(5), wowClass: "warrior" },
+      { name: "Mangler Doomhowl", role: "organizer", playerId: U(5), wowClass: "warrior" },
       { name: "Rose", role: "referee" },
     ]);
 
@@ -356,7 +356,7 @@ describe("api: reads", () => {
     const mine = (list.body as { events: { id: string; managedByMe: boolean;
       staff?: { name: string; role: string }[] }[] }).events.find((e) => e.id === ev.id)!;
     expect(mine.managedByMe).toBe(true);
-    expect(mine.staff).toEqual([{ name: "Frostbolt", role: "organizer",
+    expect(mine.staff).toEqual([{ name: "Frostbolt Winterveil", role: "organizer",
       playerId: U(7), wowClass: "mage" }]);
     const anon = await handleRequest(deps, req("GET", "/v1/events"));
     expect((anon.body as { events: { managedByMe?: boolean }[] }).events[0]!.managedByMe)
@@ -389,7 +389,7 @@ describe("api: reads", () => {
     const list = await handleRequest(deps, req("GET", "/v1/events"));
     const e = (list.body as { events: { staff?: { name: string; role: string }[] }[] })
       .events[0]!;
-    expect(e.staff).toContainEqual({ name: "Frostbolt", role: "referee",
+    expect(e.staff).toContainEqual({ name: "Frostbolt Winterveil", role: "referee",
       playerId: U(7), wowClass: "mage" });
   });
 
@@ -399,7 +399,7 @@ describe("api: reads", () => {
     expect(res.status).toBe(200);
     const b = res.body as { war: { name: string; points: number }[];
       pit: unknown[]; scoringLive: boolean };
-    expect(b.war[0]).toMatchObject({ name: "Mangler", points: 34 });
+    expect(b.war[0]).toMatchObject({ name: "Mangler Doomhowl", points: 34 });
     expect(b.pit).toHaveLength(0);
     expect(b.scoringLive).toBe(false); // journal-only until probes pass
   });
@@ -486,10 +486,10 @@ describe("api: character registration", () => {
 
   it("requires a session — unauthenticated gets 401", async () => {
     const deps = makeDeps();
-    const res = await register(deps, "bogus", { name: "Testadin" });
+    const res = await register(deps, "bogus", { name: "Testa Din" });
     expect(res.status).toBe(401);
     const noTok = await handleRequest(deps, req("POST", "/v1/characters",
-      { name: "Testadin", classId: 2, factionId: 0, level: 60 }));
+      { name: "Testa Din", classId: 2, factionId: 0, level: 60 }));
     expect(noTok.status).toBe(401);
   });
 
@@ -497,14 +497,14 @@ describe("api: character registration", () => {
     const deps = makeDeps();
     const s = await session(deps, "acct-a");
     const res = await register(deps, s.token,
-      { name: "Testadin", classId: 2, factionId: 0, level: 60 });
+      { name: "Testa Din", classId: 2, factionId: 0, level: 60 });
     expect(res.status).toBe(201);
     const c = (res.body as { character: {
       id: string; name: string; classId: number; factionId: number;
       level: number; verificationTier: string;
     } }).character;
     expect(c).toMatchObject({
-      name: "Testadin", classId: 2, factionId: 0, level: 60,
+      name: "Testa Din", classId: 2, factionId: 0, level: 60,
       verificationTier: "claimed",
     });
     // the row is real: /v1/me lists it for the account
@@ -513,11 +513,21 @@ describe("api: character registration", () => {
     expect(chars.map((x) => x.id)).toContain(c.id);
   });
 
+  it("normalizes case and whitespace — '  TESTA  din ' stores 'Testa Din'", async () => {
+    const deps = makeDeps();
+    const s = await session(deps, "acct-a");
+    const res = await register(deps, s.token,
+      { name: "  TESTA  din ", classId: 2, factionId: 0, level: 60 });
+    expect(res.status).toBe(201);
+    expect((res.body as { character: { name: string } }).character.name)
+      .toBe("Testa Din");
+  });
+
   it("rejects a duplicate name — same account and different account", async () => {
     const deps = makeDeps();
     const s1 = await session(deps, "acct-a");
     const s2 = await session(deps, "acct-b");
-    const body = { name: "Duellist", classId: 4, factionId: 1, level: 60 };
+    const body = { name: "Duelli St", classId: 4, factionId: 1, level: 60 };
     expect((await register(deps, s1.token, body)).status).toBe(201);
     // same account re-claiming
     expect((await register(deps, s1.token, body)).status).toBe(409);
@@ -529,22 +539,26 @@ describe("api: character registration", () => {
     const deps = makeDeps();
     const s = await session(deps, "acct-c");
     expect((await register(deps, s.token,
-      { name: "Testadin", classId: 2, factionId: 0, level: 60 })).status).toBe(201);
+      { name: "Testa Din", classId: 2, factionId: 0, level: 60 })).status).toBe(201);
     expect((await register(deps, s.token,
-      { name: "testadin", classId: 2, factionId: 0, level: 60 })).status).toBe(409);
+      { name: "testa din", classId: 2, factionId: 0, level: 60 })).status).toBe(409);
     // seeded names live in the same map — "mangler" collides with Mangler
     expect((await register(deps, s.token,
-      { name: "mangler", classId: 1, factionId: 0, level: 60 })).status).toBe(409);
+      { name: "mangler doomhowl", classId: 1, factionId: 0, level: 60 })).status).toBe(409);
   });
 
   it("validates fields — bad name/class/faction/level are 422", async () => {
     const deps = makeDeps();
     const s = await session(deps, "acct-a");
-    const ok = { name: "Testadin", classId: 2, factionId: 0, level: 60 };
+    const ok = { name: "Testa Din", classId: 2, factionId: 0, level: 60 };
     const bad: [unknown, string][] = [
-      [{ ...ok, name: "A" }, "invalid_name"],        // too short
-      [{ ...ok, name: "Waytoolongname" }, "invalid_name"], // > 12
+      [{ ...ok, name: "A" }, "invalid_name"],        // too short, single word
+      [{ ...ok, name: "Oneword" }, "invalid_name"],  // retail-style single name
+      [{ ...ok, name: "Three Word Name" }, "invalid_name"],
+      [{ ...ok, name: "Waytoolongname Two" }, "invalid_name"], // part > 12
+      [{ ...ok, name: "Two Waytoolongname" }, "invalid_name"],
       [{ ...ok, name: "Bad Name!" }, "invalid_name"],      // non-alpha
+      [{ ...ok, name: "Name 0ne" }, "invalid_name"],       // digit
       [{ ...ok, name: "" }, "invalid_name"],
       [{ ...ok, classId: 0 }, "invalid_classId"],
       [{ ...ok, classId: 10 }, "invalid_classId"],
@@ -567,7 +581,7 @@ describe("api: character registration", () => {
     // fresh account, no characters: register one, then upload its own report
     const s = await session(deps, "acct-z");
     const reg = await register(deps, s.token,
-      { name: "Newblade", classId: 4, factionId: 1, level: 60 });
+      { name: "New Blade", classId: 4, factionId: 1, level: 60 });
     expect(reg.status).toBe(201);
     const charId = (reg.body as { character: { id: string } }).character.id;
 

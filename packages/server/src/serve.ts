@@ -77,17 +77,17 @@ interface SeedChar {
 }
 
 const SEED_CHARS: SeedChar[] = [
-  { id: U(5),  account: "acct-a", name: "Mangler",    classId: 1, tier: "provider_verified", skill: 10 },
-  { id: U(6),  account: "acct-b", name: "Sneakthief", classId: 4, tier: "witnessed",         skill: 9 },
-  { id: U(7),  account: "acct-c", name: "Frostbolt",  classId: 7, tier: "witnessed",         skill: 8 },
-  { id: U(8),  account: "acct-d", name: "Holydin",    classId: 2, tier: "provider_verified", skill: 7 },
-  { id: U(9),  account: "acct-e", name: "Shadowmend", classId: 5, tier: "witnessed",         skill: 6 },
-  { id: U(10), account: "acct-f", name: "Moonfire",   classId: 9, tier: "witnessed",         skill: 5 },
-  { id: U(11), account: "acct-g", name: "Totemcall",  classId: 6, tier: "provider_verified", skill: 4 },
-  { id: U(12), account: "acct-h", name: "Manglepaw",  classId: 9, tier: "witnessed",         skill: 3 },
-  { id: U(13), account: "acct-i", name: "Lilbow",     classId: 3, tier: "witnessed",         skill: 2 },
+  { id: U(5),  account: "acct-a", name: "Mangler Doomhowl",    classId: 1, tier: "provider_verified", skill: 10 },
+  { id: U(6),  account: "acct-b", name: "Sneakthief Shadowvale", classId: 4, tier: "witnessed",         skill: 9 },
+  { id: U(7),  account: "acct-c", name: "Frostbolt Winterveil",  classId: 7, tier: "witnessed",         skill: 8 },
+  { id: U(8),  account: "acct-d", name: "Holydin Lightward",    classId: 2, tier: "provider_verified", skill: 7 },
+  { id: U(9),  account: "acct-e", name: "Shadowmend Nightwhisper", classId: 5, tier: "witnessed",         skill: 6 },
+  { id: U(10), account: "acct-f", name: "Moonfire Starchaser",   classId: 9, tier: "witnessed",         skill: 5 },
+  { id: U(11), account: "acct-g", name: "Totemcall Stormhoof",  classId: 6, tier: "provider_verified", skill: 4 },
+  { id: U(12), account: "acct-h", name: "Manglepaw Fernshade",  classId: 9, tier: "witnessed",         skill: 3 },
+  { id: U(13), account: "acct-i", name: "Lilbow Swiftsong",     classId: 3, tier: "witnessed",         skill: 2 },
   // claimed tier — deliberately never rating-eligible (honest unverified path)
-  { id: U(14), account: "acct-j", name: "Dotz",       classId: 8, tier: "claimed",           skill: 1 },
+  { id: U(14), account: "acct-j", name: "Dotz Gearspark",       classId: 8, tier: "claimed",           skill: 1 },
 ];
 
 /** Fixed-seed LCG — pairings and outcomes are identical across restarts. */
@@ -309,9 +309,9 @@ export async function createDeps(): Promise<ApiDeps> {
       status: "upcoming", cap: 32, signups: 14, organizerAccountId: "acct-a",
       description: "Open challenge board all evening. Standard rules, best-of-3, walk up and fight. Identity check-ins available at the desk.",
       staff: [
-        { name: "Mangler", role: "organizer", playerId: U(5), wowClass: "warrior" },
-        { name: "Sneakthief", role: "referee", playerId: U(6), wowClass: "rogue" },
-        { name: "Frostbolt", role: "referee", playerId: U(7), wowClass: "mage" },
+        { name: "Mangler Doomhowl", role: "organizer", playerId: U(5), wowClass: "warrior" },
+        { name: "Sneakthief Shadowvale", role: "referee", playerId: U(6), wowClass: "rogue" },
+        { name: "Frostbolt Winterveil", role: "referee", playerId: U(7), wowClass: "mage" },
       ],
     });
     events.seed({
@@ -319,7 +319,7 @@ export async function createDeps(): Promise<ApiDeps> {
       whenMs: now + 5 * 86400_000, venue: "Durotar — outside Orgrimmar",
       status: "upcoming", cap: 24, signups: 9,
       description: "New to dueling? Volunteers run coached practice duels. No rating pressure — just learn.",
-      staff: [{ name: "Mangler", role: "organizer", playerId: U(5), wowClass: "warrior" }],
+      staff: [{ name: "Mangler Doomhowl", role: "organizer", playerId: U(5), wowClass: "warrior" }],
     });
     events.seed({
       id: U(22), name: "Mirror Cup — Mages", kind: "mirror_cup",
@@ -327,23 +327,23 @@ export async function createDeps(): Promise<ApiDeps> {
       status: "upcoming", cap: 16, signups: 6, organizerAccountId: "acct-c",
       description: "Same-class bracket. Mirror ladder points on the line.",
       staff: [
-        { name: "Frostbolt", role: "organizer", playerId: U(7), wowClass: "mage" },
-        { name: "Sneakthief", role: "referee", playerId: U(6), wowClass: "rogue" },
+        { name: "Frostbolt Winterveil", role: "organizer", playerId: U(7), wowClass: "mage" },
+        { name: "Sneakthief Shadowvale", role: "referee", playerId: U(6), wowClass: "rogue" },
       ],
     });
     // opt-in war journal — scoring gated on probes, so the board is
     // honest: journal data exists, points are pilot numbers
     world.seed("war", [
-      { playerId: U(5), name: "Mangler", wowClass: "warrior", points: 34, reports: 11 },
-      { playerId: U(6), name: "Sneakthief", wowClass: "rogue", points: 27, reports: 9 },
-      { playerId: U(7), name: "Frostbolt", wowClass: "mage", points: 19, reports: 6 },
-      { playerId: U(8), name: "Holydin", wowClass: "paladin", points: 15, reports: 5 },
-      { playerId: U(10), name: "Moonfire", wowClass: "druid", points: 11, reports: 4 },
+      { playerId: U(5), name: "Mangler Doomhowl", wowClass: "warrior", points: 34, reports: 11 },
+      { playerId: U(6), name: "Sneakthief Shadowvale", wowClass: "rogue", points: 27, reports: 9 },
+      { playerId: U(7), name: "Frostbolt Winterveil", wowClass: "mage", points: 19, reports: 6 },
+      { playerId: U(8), name: "Holydin Lightward", wowClass: "paladin", points: 15, reports: 5 },
+      { playerId: U(10), name: "Moonfire Starchaser", wowClass: "druid", points: 11, reports: 4 },
     ]);
     world.seed("pit", [
-      { playerId: U(6), name: "Sneakthief", wowClass: "rogue", points: 12, reports: 4 },
-      { playerId: U(9), name: "Shadowmend", wowClass: "priest", points: 9, reports: 3 },
-      { playerId: U(5), name: "Mangler", wowClass: "warrior", points: 7, reports: 3 },
+      { playerId: U(6), name: "Sneakthief Shadowvale", wowClass: "rogue", points: 12, reports: 4 },
+      { playerId: U(9), name: "Shadowmend Nightwhisper", wowClass: "priest", points: 9, reports: 3 },
+      { playerId: U(5), name: "Mangler Doomhowl", wowClass: "warrior", points: 7, reports: 3 },
     ]);
   }
   return {

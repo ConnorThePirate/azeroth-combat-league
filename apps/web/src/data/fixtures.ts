@@ -27,20 +27,20 @@ const P = (
 });
 
 export const PLAYERS: Player[] = [
-  { ...P("p1", "Mangler", "warrior", 1684, 41, 17), titles: ["Season 1 Contender"] },
-  P("p2", "Sneakthief", "rogue", 1622, 33, 19),
-  P("p3", "Frostbolt", "mage", 1591, 29, 21),
-  { ...P("p4", "Holydin", "paladin", 1560, 24, 22), titles: ["Mirror Cup Finalist"] },
-  P("p5", "Shadowmend", "priest", 1521, 19, 18),
-  P("p6", "Moonfire", "druid", 1498, 15, 14),
+  { ...P("p1", "Mangler Doomhowl", "warrior", 1684, 41, 17), titles: ["Season 1 Contender"] },
+  P("p2", "Sneakthief Shadowvale", "rogue", 1622, 33, 19),
+  P("p3", "Frostbolt Winterveil", "mage", 1591, 29, 21),
+  { ...P("p4", "Holydin Lightward", "paladin", 1560, 24, 22), titles: ["Mirror Cup Finalist"] },
+  P("p5", "Shadowmend Nightwhisper", "priest", 1521, 19, 18),
+  P("p6", "Moonfire Starchaser", "druid", 1498, 15, 14),
   // Lilbow verified identity at Friday Fight Night check-in (event-scoped
   // witness path — see supabase 0011), still placing on the board.
-  { ...P("p7", "Lilbow", "hunter", null, 6, 4, "witnessed",
+  { ...P("p7", "Lilbow Swiftsong", "hunter", null, 6, 4, "witnessed",
     { seriesDone: 6, seriesNeeded: 10, opponentsDone: 3, opponentsNeeded: 5 }), titles: [] },
-  P("p8", "Totemcall", "shaman", 1471, 12, 11),
-  { ...P("p9", "Dotz", "warlock", null, 2, 1, "claimed",
+  P("p8", "Totemcall Stormhoof", "shaman", 1471, 12, 11),
+  { ...P("p9", "Dotz Gearspark", "warlock", null, 2, 1, "claimed",
     { seriesDone: 2, seriesNeeded: 10, opponentsDone: 2, opponentsNeeded: 5 }), titles: [] },
-  P("p10", "Manglepaw", "druid", 1455, 10, 9),
+  P("p10", "Manglepaw Fernshade", "druid", 1455, 10, 9),
 ];
 PLAYERS[3]!.mirror = { rating: 1578, wins: 8, losses: 3, placement: null };
 
@@ -58,8 +58,8 @@ export function ladder(l: Ladder): LeaderboardEntry[] {
 
 export const MATCHES: MatchRecord[] = [
   {
-    id: "m1", reportsReceived: 2, a: { playerId: "p1", name: "Mangler", wowClass: "warrior" },
-    b: { playerId: "p2", name: "Sneakthief", wowClass: "rogue" },
+    id: "m1", reportsReceived: 2, a: { playerId: "p1", name: "Mangler Doomhowl", wowClass: "warrior" },
+    b: { playerId: "p2", name: "Sneakthief Shadowvale", wowClass: "rogue" },
     winnerId: "p1", scoreA: 2, scoreB: 1, bestOf: 3,
     ladder: "open", rulesetName: "Ranked Standard", standard: true,
     status: "rated", evidence: "corroborated",
@@ -72,8 +72,8 @@ export const MATCHES: MatchRecord[] = [
     ratedAtMs: now - 2 * H, ratingDelta: 19_000, weightPercent: 100,
   },
   {
-    id: "m2", reportsReceived: 1, a: { playerId: "p3", name: "Frostbolt", wowClass: "mage" },
-    b: { playerId: "p4", name: "Holydin", wowClass: "paladin" },
+    id: "m2", reportsReceived: 1, a: { playerId: "p3", name: "Frostbolt Winterveil", wowClass: "mage" },
+    b: { playerId: "p4", name: "Holydin Lightward", wowClass: "paladin" },
     winnerId: "p4", scoreA: 0, scoreB: 2, bestOf: 3,
     ladder: "open", rulesetName: "Ranked Standard", standard: true,
     status: "awaiting_opponent", evidence: "peer_supported",
@@ -86,8 +86,8 @@ export const MATCHES: MatchRecord[] = [
     note: "One report received. Waiting on Frostbolt's side — nothing is lost if it never arrives.",
   },
   {
-    id: "m3", reportsReceived: 2, a: { playerId: "p7", name: "Lilbow", wowClass: "hunter" },
-    b: { playerId: "p9", name: "Dotz", wowClass: "warlock" },
+    id: "m3", reportsReceived: 2, a: { playerId: "p7", name: "Lilbow Swiftsong", wowClass: "hunter" },
+    b: { playerId: "p9", name: "Dotz Gearspark", wowClass: "warlock" },
     winnerId: "p7", scoreA: 2, scoreB: 0, bestOf: 3,
     ladder: null, rulesetName: "Fieldcraft", standard: false,
     status: "received", evidence: "peer_supported",
@@ -100,8 +100,8 @@ export const MATCHES: MatchRecord[] = [
     note: "Custom ruleset — tracked as a match, never affects Standard rating.",
   },
   {
-    id: "m4", reportsReceived: 2, a: { playerId: "p1", name: "Mangler", wowClass: "warrior" },
-    b: { playerId: "p5", name: "Shadowmend", wowClass: "priest" },
+    id: "m4", reportsReceived: 2, a: { playerId: "p1", name: "Mangler Doomhowl", wowClass: "warrior" },
+    b: { playerId: "p5", name: "Shadowmend Nightwhisper", wowClass: "priest" },
     winnerId: null, scoreA: 1, scoreB: 1, bestOf: 3,
     ladder: "open", rulesetName: "Ranked Standard", standard: true,
     status: "under_review", evidence: "disputed",
@@ -157,9 +157,9 @@ export const EVENTS: ClubEvent[] = [
     description: "Open challenge board all evening. Standard rules, best-of-3, walk up and fight. Identity check-ins available at the desk.",
     signups: 14, cap: 32,
     staff: [
-      { name: "Mangler", role: "organizer", playerId: "p1", wowClass: "warrior" },
-      { name: "Sneakthief", role: "referee", playerId: "p2", wowClass: "rogue" },
-      { name: "Holydin", role: "referee", playerId: "p4", wowClass: "paladin" },
+      { name: "Mangler Doomhowl", role: "organizer", playerId: "p1", wowClass: "warrior" },
+      { name: "Sneakthief Shadowvale", role: "referee", playerId: "p2", wowClass: "rogue" },
+      { name: "Holydin Lightward", role: "referee", playerId: "p4", wowClass: "paladin" },
     ],
   },
   {
@@ -168,7 +168,7 @@ export const EVENTS: ClubEvent[] = [
     status: "upcoming",
     description: "New to dueling? Volunteers run coached practice duels. No rating pressure — just learn.",
     signups: 9, cap: 24,
-    staff: [{ name: "Mangler", role: "organizer", playerId: "p1", wowClass: "warrior" }],
+    staff: [{ name: "Mangler Doomhowl", role: "organizer", playerId: "p1", wowClass: "warrior" }],
   },
   {
     id: "e3", name: "Mirror Cup — Mages", kind: "mirror_cup",
@@ -177,8 +177,8 @@ export const EVENTS: ClubEvent[] = [
     description: "Same-class bracket. Mirror ladder points on the line.",
     signups: 6, cap: 16,
     staff: [
-      { name: "Frostbolt", role: "organizer", playerId: "p3", wowClass: "mage" },
-      { name: "Sneakthief", role: "referee", playerId: "p2", wowClass: "rogue" },
+      { name: "Frostbolt Winterveil", role: "organizer", playerId: "p3", wowClass: "mage" },
+      { name: "Sneakthief Shadowvale", role: "referee", playerId: "p2", wowClass: "rogue" },
     ],
   },
 ];
@@ -188,14 +188,14 @@ export const EVENTS: ClubEvent[] = [
 export const WORLD: WorldBoard = {
   scoringLive: false,
   war: [
-    { rank: 1, playerId: "p1", name: "Mangler", wowClass: "warrior", points: 34, reports: 11 },
-    { rank: 2, playerId: "p2", name: "Sneakthief", wowClass: "rogue", points: 27, reports: 9 },
-    { rank: 3, playerId: "p6", name: "Moonfire", wowClass: "druid", points: 22, reports: 8 },
-    { rank: 4, playerId: "p3", name: "Frostbolt", wowClass: "mage", points: 19, reports: 6 },
+    { rank: 1, playerId: "p1", name: "Mangler Doomhowl", wowClass: "warrior", points: 34, reports: 11 },
+    { rank: 2, playerId: "p2", name: "Sneakthief Shadowvale", wowClass: "rogue", points: 27, reports: 9 },
+    { rank: 3, playerId: "p6", name: "Moonfire Starchaser", wowClass: "druid", points: 22, reports: 8 },
+    { rank: 4, playerId: "p3", name: "Frostbolt Winterveil", wowClass: "mage", points: 19, reports: 6 },
   ],
   pit: [
-    { rank: 1, playerId: "p2", name: "Sneakthief", wowClass: "rogue", points: 12, reports: 4 },
-    { rank: 2, playerId: "p5", name: "Shadowmend", wowClass: "priest", points: 9, reports: 3 },
+    { rank: 1, playerId: "p2", name: "Sneakthief Shadowvale", wowClass: "rogue", points: 12, reports: 4 },
+    { rank: 2, playerId: "p5", name: "Shadowmend Nightwhisper", wowClass: "priest", points: 9, reports: 3 },
   ],
 };
 

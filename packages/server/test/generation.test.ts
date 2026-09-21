@@ -25,9 +25,9 @@ function makeDeps(): ApiDeps & { store: InMemoryStore; reads: InMemoryReadModel 
   const store = new InMemoryStore(names);
   const reads = new InMemoryReadModel(store, names);
   for (const [id, accountId, name, classId, tier] of [
-    [U(5), "acct-a", "Mangler", 1, "witnessed"],
-    [U(6), "acct-b", "Sneakthief", 4, "witnessed"],
-    [U(7), "acct-c", "Frostbolt", 7, "witnessed"],
+    [U(5), "acct-a", "Mangler Doomhowl", 1, "witnessed"],
+    [U(6), "acct-b", "Sneakthief Shadowvale", 4, "witnessed"],
+    [U(7), "acct-c", "Frostbolt Winterveil", 7, "witnessed"],
   ] as const) {
     store.characters.set(id, { id, accountId, classId, level: 60, verificationTier: tier });
     names.set(id, name);
@@ -211,14 +211,14 @@ describe("seeded dev board", () => {
     const placing = board.filter((e) => e.placement !== null);
     expect(rated.length).toBeGreaterThanOrEqual(6);
     expect(placing.length).toBeGreaterThanOrEqual(2);
-    expect(board[0]!.name).toBe("Mangler");
-    expect(board.some((e) => e.name === "Dotz")).toBe(false);
+    expect(board[0]!.name).toBe("Mangler Doomhowl");
+    expect(board.some((e) => e.name === "Dotz Gearspark")).toBe(false);
   });
 
   it("mirror ladder lists both druids", async () => {
     const { reads } = await seededBoard();
     const mirror = await reads.leaderboard(SEASON, "mirror");
-    expect(mirror.map((e) => e.name).sort()).toEqual(["Manglepaw", "Moonfire"]);
+    expect(mirror.map((e) => e.name).sort()).toEqual(["Manglepaw Fernshade", "Moonfire Starchaser"]);
     expect(mirror.every((e) => e.wowClass === "druid")).toBe(true);
   });
 

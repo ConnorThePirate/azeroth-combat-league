@@ -586,6 +586,7 @@ export async function handleRequest(deps: ApiDeps, req: ApiRequest): Promise<Api
   }
 
   // --- character self-registration (docs/26) ------------------------------
+  // Names are "First Last" on the Forever megaserver — enforced below.
   // Self-reported characters land at `claimed` tier: they can duel and
   // record matches immediately, but count on the ladder only after an event
   // check-in (witnessed) or provider verification. This route must never
@@ -598,9 +599,15 @@ export async function handleRequest(deps: ApiDeps, req: ApiRequest): Promise<Api
     const b = req.body as {
       name?: unknown; classId?: unknown; factionId?: unknown; level?: unknown;
     } | undefined;
-    const name = typeof b?.name === "string" ? b.name.trim() : "";
-    if (!/^[A-Za-z]{2,12}$/.test(name))
+    // WoW Forever names are two words — "First Last" — unlike retail.
+    // Normalize whitespace + title-case so storage is canonical and the
+    // case-insensitive name_taken check stays meaningful.
+    const raw = typeof b?.name === "string" ? b.name.trim().replace(/\s+/g, " ") : "";
+    if (!/^[A-Za-z]{2,12} [A-Za-z]{2,12}$/.test(raw))
       return json(422, { error: "invalid_name" });
+    const name = raw.split(" ")
+      .map((p) => p[0]!.toUpperCase() + p.slice(1).toLowerCase())
+      .join(" ");
     const classId = Number(b?.classId);
     if (!Number.isInteger(classId) || classId < 1 || classId > 9)
       return json(422, { error: "invalid_classId" });

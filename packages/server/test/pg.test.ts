@@ -107,11 +107,11 @@ describe.skipIf(!process.env.DATABASE_URL)("postgres wiring", () => {
          name, class_id, faction_id, level, verification_tier)
         values
         ('${U(5)}', '${ACCT_A}', 'wow-forever', 'beta', 'EU', 'forever',
-         'Mangler', 1, 0, 60, 'provider_verified'),
+         'Mangler Doomhowl', 1, 0, 60, 'provider_verified'),
         ('${U(6)}', '${ACCT_B}', 'wow-forever', 'beta', 'EU', 'forever',
-         'Sneakthief', 4, 0, 60, 'witnessed'),
+         'Sneakthief Shadowvale', 4, 0, 60, 'witnessed'),
         ('${U(7)}', '${U(62)}', 'wow-forever', 'beta', 'EU', 'forever',
-         'Frostbolt', 7, 0, 60, 'witnessed')
+         'Frostbolt Winterveil', 7, 0, 60, 'witnessed')
         on conflict do nothing;
     `);
 
@@ -187,7 +187,7 @@ describe.skipIf(!process.env.DATABASE_URL)("postgres wiring", () => {
     expect(mine.managedByMe).toBe(true);
     // organizer staff row resolves to the account's character (0010 display join)
     expect(mine.staff).toEqual([
-      { name: "Mangler", role: "organizer", playerId: U(5), wowClass: "warrior" },
+      { name: "Mangler Doomhowl", role: "organizer", playerId: U(5), wowClass: "warrior" },
     ]);
 
     const viaApi = await handleRequest(deps, req("GET", "/v1/events"));
