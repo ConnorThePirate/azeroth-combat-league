@@ -19,7 +19,7 @@
     "@acl/contracts": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "20.19.0",
+    "@types/node": "26.6.2",
     "tsx": "4.23.15",
     "typescript": "5.9.3",
     "vitest": "4.1.11"
